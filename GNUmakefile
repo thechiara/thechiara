@@ -21,14 +21,14 @@ all : chiarav
 
 %.o: %.c
 
-			clang  $<   -c -MD -o $@  $(CCOPTAFT) 
+			gcc  $<   -c -MD -o $@  $(CCOPTAFT) 
 			
 
 
 chiarav: $(OBJECTS)
 				 $(MAKE) -C utildis/powerpc
 
-				clang -o chiarav $(OBJECTS) -pthread  utilsdis/powerpc/chiara-ppc
+				gcc -o chiarav $(OBJECTS) -pthread  utildis/powerpc/chiara-ppc.o
 				
 
 clean: cleanf

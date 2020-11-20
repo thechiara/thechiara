@@ -5,7 +5,7 @@ INCLUDEDIR:= include
 CCOPTAFT =     -std=gnu99  -g  -Wall  -c  
 
 
-SOURCES := ppc-opc.c
+SOURCES := chiara-ppc.c
 OBJECTS := $(SOURCES:.c=.o)
 OBJECTSD := $(SOURCES:.c=.d)
 
@@ -27,7 +27,7 @@ all : chiarav
 
 
 chiarav: $(OBJECTS)
-				clang -o chiara-ppc $(OBJECTS) 
+			echo end of ppc module compilation
 				
 
 clean: cleanf
@@ -35,6 +35,6 @@ clean: cleanf
 
 
 cleanf: $(OBJECTS)
-			rm -rf  chiara-ppc
+			
 			rm -rf  $(OBJECTS)
 			rm -rf  $(OBJECTSD)
