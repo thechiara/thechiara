@@ -41,7 +41,7 @@
 
 int main (int argn,const char *argv[]) {
 
-
+chiara_print_ppc();
 
 int file = open(argv[2],O_RDONLY);
 

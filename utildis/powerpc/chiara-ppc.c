@@ -8652,6 +8652,9 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 const unsigned int powerpc_num_opcodes =
   sizeof (powerpc_opcodes) / sizeof (powerpc_opcodes[0]);
+  
+
+  
 
 /* The opcode table for 8-byte prefix instructions.
 
@@ -8729,6 +8732,8 @@ const struct powerpc_opcode prefix_opcodes[] = {
 
 const unsigned int prefix_num_opcodes =
   sizeof (prefix_opcodes) / sizeof (prefix_opcodes[0]);
+ 
+
 
 /* The VLE opcode table.
 
@@ -10548,3 +10553,64 @@ const struct powerpc_opcode spe2_opcodes[] = {
 
 const unsigned int spe2_num_opcodes =
   sizeof (spe2_opcodes) / sizeof (spe2_opcodes[0]);
+  // if the opcode
+int chiara_extract_xopcode_ppc(unsigned long instruction,unsigned long index) {
+	
+	if(powerpc_opcodes[index].mask & instruction == powerpc_opcodes[index].opcode & powerpc_opcodes[index].mask ) {
+		
+		return 1; // ok the extended opcode is equal is the good instruction !
+		}
+	return 0; // no the instruction is not the true insruction , please retry :(
+}
+
+/*This function parse all the opcode to get the succesfull one and tell chiaraconvertor about the  insrruction will be executed
+ * 
+ */
+void chiara_parse_ppc_instruction(unsigned long long instruction) {
+	unsigned char opcodebasic = PPC_OP(instruction);
+	//PPC_OP
+	for(int x = 0;x<powerpc_num_opcodes;x++) {
+
+		if(PPC_OP(powerpc_opcodes[x].opcode) == opcodebasic) {
+													printf("FOUND %s \n ",powerpc_opcodes[x].name);
+
+			int status = 0;
+
+			while(status!= 8 && powerpc_opcodes[x].operands[status] != 0) {
+				int error;
+				if(*powerpc_operands[powerpc_opcodes[x].operands[status]].extract != 0) {
+					
+					powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&error);
+						if(error !=1) {
+					// We have found our instruction great !
+					break;
+					
+					}
+					}
+			
+				status++;
+				
+				}
+			}
+	}	
+}
+  
+
+void chiara_print_ppc() {
+	
+for(int x = 0;x<powerpc_num_opcodes;x++) {
+	printf("name %s \n",powerpc_opcodes[x].name);
+	printf("opcode  %x \n",(unsigned long long)PPC_OP(powerpc_opcodes[x].opcode));
+	printf("index  %d \n",x);
+	}
+		chiara_parse_ppc_instruction(0xD000C47C);
+
+	printf("ok maintenant tentative pour neg d'appliquer le masque \n");
+	
+	
+	printf("opcode eg %d \n",(unsigned long long)PPC_OP(powerpc_opcodes[2001].opcode));	
+	printf("exo opcode test  eg %d \n",(unsigned long long)SPE2_XOP(powerpc_opcodes[2001].opcode));	
+	printf("Xo opcode test eg %d \n",(unsigned long long)powerpc_opcodes[2001].opcode & powerpc_opcodes[2001].mask );	
+	printf(" masks neg %d \n",(unsigned long long) powerpc_opcodes[2001].mask );	
+	
+}
