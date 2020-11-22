@@ -29,7 +29,11 @@ extern "C" {
 typedef unsigned long long ppc_cpu_t;
 
 /* The opcode table is an array of struct powerpc_opcode.  */
-
+struct chiara_ppc_execute {
+	unsigned long long instruction;
+	int whereopcode; // the inde of opcode in powerpc_opcode struct array
+	
+	};
 struct powerpc_opcode
 {
   /* The opcode name.  */
@@ -59,6 +63,8 @@ struct powerpc_opcode
      operand table.  They appear in the order which the operands must
      appear in assembly code, and are terminated by a zero.  */
   unsigned char operands[8];
+  
+  long(*traductor) (struct chiara_ppc_execute*) ; // this function is used to do the operand and tell chiaraglobal about that
 };
 
 /* The table itself is sorted by major opcode number, and is otherwise

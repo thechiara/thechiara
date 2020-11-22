@@ -10563,7 +10563,7 @@ int chiara_extract_xopcode_ppc(unsigned long instruction,unsigned long index) {
 	return 0; // no the instruction is not the true insruction , please retry :(
 }
 
-/*This function parse all the opcode to get the succesfull one and tell chiaraconvertor about the  insrruction will be executed
+/*This function parse all the opcode to get the succesfull one and tell chiaraconvertor about the  instruction will be executed
  * 
  */
 void chiara_parse_ppc_instruction(unsigned long long instruction) {
@@ -10580,7 +10580,7 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 				int error;
 				if(*powerpc_operands[powerpc_opcodes[x].operands[status]].extract != 0) {
 					
-					powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&error);
+				  signed long long valuereturned = 	powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&error);
 						if(error !=1) {
 					// We have found our instruction great !
 					break;
