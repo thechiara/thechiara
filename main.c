@@ -37,12 +37,16 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <elf.h>
+#include <chiaracompute.h>
 
 
 int main (int argn,const char *argv[]) {
 
-chiara_print_ppc();
+printf("Copyright 2020 Gaspard COURCHINOUX and contributors of thechiara project \n");
+printf("thechiara can open elf files usage = -elf thenameofile \n");
+printf("thechiara will detect the destination architecture of elf and start decompilling it and recompile in chiarasm \n");
 
+if(strcmp(argv[1],"-elf") == 0) {
 int file = open(argv[2],O_RDONLY);
 
 
@@ -55,9 +59,11 @@ unsigned  char  *gaspard = malloc(end);
 int size = 	read(file,gaspard,end);
 close(file);
 int status = 0;
+printf("Now tell the elfmodule to analyze the elf file \n");
+chiara_extract_elf(gaspard);
 //~ gaspard_scan_opcode(gaspard[status] & masque16(0,5) >>2);
 
-
+}
 while(1);
 	
 

@@ -23,6 +23,8 @@
 
 #include <stdio.h>
 #include "ppc.h"
+#include <byteswap.h>
+#include <chiaracompute.h>
 
 /* This file holds the PowerPC opcode table.  The opcode table
    includes almost all of the extended instruction mnemonics.  This
@@ -10612,5 +10614,48 @@ for(int x = 0;x<powerpc_num_opcodes;x++) {
 	printf("exo opcode test  eg %d \n",(unsigned long long)SPE2_XOP(powerpc_opcodes[2001].opcode));	
 	printf("Xo opcode test eg %d \n",(unsigned long long)powerpc_opcodes[2001].opcode & powerpc_opcodes[2001].mask );	
 	printf(" masks neg %d \n",(unsigned long long) powerpc_opcodes[2001].mask );	
+	
+}
+// use that to emulate and build big endian instruction
+void chiara_emul_bigendian_ppc(unsigned char *instruction,int size) {
+	long statusarray=0;
+	long shiftnum=0;
+	unsigned long long *instructionbuiled = malloc(64);
+	for(;statusarray<size;statusarray++) {
+		*instructionbuiled |= instruction[statusarray] << shiftnum;
+		if(shiftnum == 56) {
+			// compile instrction 
+			
+			chiara_parse_ppc_instruction(bswap_64(*instructionbuiled));
+			free(instructionbuiled);
+			instructionbuiled = malloc(64);
+			shiftnum = 0;
+			}else {
+		shiftnum += 8;
+	}
+		
+		
+		}
+}
+// use that to emulate and build little endian instruction (is the default)
+void chiara_emul_littleendian_ppc(unsigned char *instruction,int size) {
+	long statusarray=0;
+	long shiftnum=0;
+	unsigned long long *instructionbuiled = malloc(64);
+	for(;statusarray<size;statusarray++) {
+		*instructionbuiled |= instruction[statusarray] << shiftnum;
+		if(shiftnum == 56) {
+			// compile instrction 
+			
+			chiara_parse_ppc_instruction(*instructionbuiled);
+			free(instructionbuiled);
+			instructionbuiled = malloc(64);
+			shiftnum = 0;
+			} else {
+		shiftnum += 8;
+	}
+		
+		
+		}
 	
 }
