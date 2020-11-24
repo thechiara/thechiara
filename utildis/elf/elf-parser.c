@@ -98,6 +98,8 @@ if (elfheader->e_ident[EI_DATA] == ELFDATA2LSB) {
 		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+			case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+
 		case EM_X86_64 : break;
 
 		}
@@ -112,7 +114,9 @@ if (elfheader->e_ident[EI_DATA] == ELFDATA2LSB) {
 		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
-		case EM_X86_64 : break;
+			case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+
+	case EM_X86_64 : break;
 
 		}
 
@@ -198,6 +202,7 @@ switch (sectionactuelstruct[sectionread].sh_type) {
 		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+		case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_X86_64 : break; 
 
 		}
@@ -212,6 +217,8 @@ switch (sectionactuelstruct[sectionread].sh_type) {
 		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+		case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+
 		case EM_X86_64 : break;
 
 		}
