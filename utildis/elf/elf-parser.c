@@ -95,12 +95,13 @@ if (elfheader->e_ident[EI_DATA] == ELFDATA2LSB) {
 	
 	
 	switch (elfheader->e_machine) {
-		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
-			case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+			case EM_VAX : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 
-		case EM_X86_64 : break;
+		case EM_X86_64 : chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size); break;
+		case EM_386 : chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size); break;
+default : printf("Dont know fatal : %d \n",elfheader->e_machine);
 
 		}
 
@@ -111,12 +112,13 @@ if (elfheader->e_ident[EI_DATA] == ELFDATA2LSB) {
 		printf("big endian on lit de gauche à droite \n");
 		
 			switch (elfheader->e_machine) {
-		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
-			case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+			case EM_VAX : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 
-	case EM_X86_64 : break;
+	case EM_X86_64 : chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size); break;
+	case EM_386 : chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size); break;
+default : printf("Dont know fatal : %d \n",elfheader->e_machine);
 
 		}
 
@@ -199,11 +201,12 @@ switch (sectionactuelstruct[sectionread].sh_type) {
 	
 	
 	switch (elfheader->e_machine) {
-		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_littleendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
-		case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
-		case EM_X86_64 : break; 
+		case EM_VAX : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+		case EM_X86_64 :  chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
+		case EM_386 :  chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
+default : printf("Dont know fatal : %d \n",elfheader->e_machine);  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);
 
 		}
 
@@ -214,13 +217,13 @@ switch (sectionactuelstruct[sectionread].sh_type) {
 		printf("big endian on lit de gauche à droite \n");
 		
 			switch (elfheader->e_machine) {
-		case EM_386 : break;
 		case EM_PPC : printf("powerpc 32bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_PPC64 : printf("powerpc 64bits \n");  chiara_emul_bigendian_ppc (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
-		case EM_FAKE_ALPHA : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
+		case EM_VAX : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 
-		case EM_X86_64 : break;
-
+		case EM_X86_64 : chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size); break;
+		case EM_386 : chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size); break;
+default : printf("Dont know fatal : %d \n",elfheader->e_machine);
 		}
 
 		
@@ -253,7 +256,7 @@ exit(EXIT_FAILURE);
 
 		}
 	if (elfheader->e_ident[EI_CLASS] == ELFCLASS64) {
-		printf("64 bits elf: uniquement 32 bit \n");
+		printf("64 bits elf \n");
 		//exit(EXIT_FAILURE);	
 chiara_extract_64bits(structheader);
 		}
