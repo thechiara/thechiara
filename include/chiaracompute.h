@@ -49,3 +49,5 @@ struct chiara_compute_global {
 	struct chiara_compute_global global_struct;
 void chiara_emul_bigendian_ppc(unsigned char *instruction,int size) ;
 void chiara_emul_littleendian_ppc(unsigned char *instruction,int size);
+
+void chiara_dos_header_look(unsigned char *file,unsigned long size);

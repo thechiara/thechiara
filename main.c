@@ -63,6 +63,22 @@ printf("Now tell the elfmodule to analyze the elf file \n");
 chiara_extract_elf(gaspard);
 //~ gaspard_scan_opcode(gaspard[status] & masque16(0,5) >>2);
 
+}else if(strcmp(argv[1],"-exe") == 0) {
+int file = open(argv[2],O_RDONLY);
+
+
+int end = lseek(file,0,SEEK_END );
+	
+	lseek(file,0,SEEK_SET  ); // puyt on the begin
+	
+	// ici tester le fichier ELF ?iso ? raw
+unsigned  char  *gaspard = malloc(end);
+int size = 	read(file,gaspard,end);
+close(file);
+int status = 0;
+printf("Now call  the exe module to analyze the elf file \n");
+chiara_dos_header_look(gaspard,size);
+
 }
 while(1);
 	
