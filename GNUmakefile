@@ -5,7 +5,7 @@ INCLUDEDIR:= include
 CCOPTAFT =     -std=gnu99  -g  -Wall  -c  -I$(INCLUDEDIR) 
 
 
-SOURCES := main.c utildis/powerpc/chiara-ppc.c utildis/elf/elf-parser.c utildis/alphadec/alphadec.c  utildis/riscv/riscv.c utildis/i386/i386-opc.c utildis/pe32/chiara-exe.c
+SOURCES := main.c utildis/powerpc/chiara-ppc.c utildis/elf/elf-parser.c utildis/alphadec/alphadec.c  utildis/riscv/riscv.c utildis/i386/i386-opc.c utildis/pe32/chiara-exe.c utildis/iso/iso.c
 
 OBJECTS := $(SOURCES:.c=.o)
 OBJECTSD := $(SOURCES:.c=.d)
