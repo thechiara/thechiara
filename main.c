@@ -36,7 +36,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <elf.h>
+#include <chiara-elf.h>
 #include <chiaracompute.h>
 
 

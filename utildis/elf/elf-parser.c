@@ -39,7 +39,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <elf.h>
+#include <chiara-elf.h>
 #include <chiaracompute.h>
 void chiara_extract_32bits( char *structheader) {
 		Elf32_Ehdr *elfheader = structheader;
