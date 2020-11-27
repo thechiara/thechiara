@@ -40,27 +40,74 @@
 #include <errno.h>
 #include <chiara-elf.h>
 #include <chiaracompute.h>
+#include <chiaracore.h>
 
+   #include <unistd.h>
 
-void chiara_init_iso(unsigned char*file,int sizeofiso, char *argvstring) {
+struct image_iso{
+	unsigned char *image;
+	unsigned long size;
+	long instruction_type; // type instruction 
+	
+	
+	};
+struct image_iso image;
+
+int chiara_test_cd (unsigned char*file,int sizeofiso) {
+	if(sizeofiso <=2048) {
+		
+		return 0;
+		}
+	unsigned char volume_descriptor = file[2048*0x0f];
+	printf("ISO : VOLUME DESCRIPTOR : %x \n",volume_descriptor);
+	
+	}
+void chiara_init_huge_iso(int file,unsigned long sizeofiso, char *argvstring) {
+	if(sizeofiso <=2048) {
+		printf("Crazy : the size of the iso is inferior at 2048 \n");
+		return 0;
+		}	
+	
+int end = lseek(file,0x0f,SEEK_SET ); // we want the volume descriptor
+perror("Seek status");
+unsigned char *volume_descriptor = malloc(2048);
+read(file,volume_descriptor,2048);	
+perror("READ status");
+
+	lseek(file,0,SEEK_SET  ); 
+	perror("seek to zero status");
+
+		printf("HUGE ISO : VOLUME DESCRIPTOR : %x \n",volume_descriptor[0]);
+
+}
+void chiara_init_iso(unsigned char*file,unsigned long sizeofiso, char *argvstring) {
+	// detect if the iso is an ISO9660 file
+	printf("ISO SIZE %x \n",sizeofiso);
 unsigned char * init = malloc(446);	
+	image.image =file;
+	image.size =sizeofiso;
 	
 	for(int x = 0;x<446;x++) {
 		init[x] = file[x];
 		
 		}
 	if(strcmp(argvstring,"-x86") == 0) {
-		
+		printf("detect x86 iso\n");
+		image.instruction_type = X86_IMAGE;
 		chiara_emul_x86(init,446);
 		
 		} else if(strcmp(argvstring,"-ppcle") == 0) {
 			
 			printf("ppc little endian iso \n");
+					image.instruction_type = POWERPC_LITTLENDIAN_IMAGE;
+
 					chiara_emul_littleendian_ppc(init,446);
 
 		} else if(strcmp(argvstring,"-ppcbe") == 0) {
 			
 			printf("ppc little endian iso \n");
+		image.instruction_type = POWERPC_BIGNDIAN_IMAGE;
+	
 					chiara_emul_bigendian_ppc(init,446);
 
 		}

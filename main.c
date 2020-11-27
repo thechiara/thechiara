@@ -76,7 +76,7 @@ int size = 	read(file,gaspard,end);
 close(file);
 int status = 0;
 printf("Now call  the exe module to analyze the elf file \n");
-chiara_dos_header_look(gaspard,size);
+chiara_dos_header_look(gaspard,end);
 
 
 }else if(strcmp(argv[1],"-iso") == 0) {
@@ -91,19 +91,25 @@ chiara_dos_header_look(gaspard,size);
 		}
 int file = open(argv[2],O_RDONLY);
 
-
+perror("ISO STATUS FILE");
 int end = lseek(file,0,SEEK_END );
 	
 	lseek(file,0,SEEK_SET  ); // puyt on the begin
 	
 	// ici tester le fichier ELF ?iso ? raw
 unsigned  char  *gaspard = malloc(end);
+if(gaspard == NULL) {
+perror("MALLOC STATUS ISO");
+printf("Malloc cannot allow thechiara to get necessary memory, so thechiara will try to detect with your VFS fseek an ISO9660 filesystem \n");
+chiara_init_huge_iso(file,end,argv[3]);
+
+}else {
 int size = 	read(file,gaspard,end);
 close(file);
 int status = 0;
 printf("Now call the iso module \n");
-chiara_init_iso(gaspard,size);
-
+chiara_init_iso(gaspard,end,argv[3]);
+}
 }
 while(1);
 	

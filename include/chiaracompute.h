@@ -28,25 +28,25 @@
  * 
  */
 // 
-	struct chiara_compute_flags {
+	//~ struct chiara_compute_flags {
 	
-	unsigned char equal;
-	unsigned char carry;
-	unsigned char overflow;
-	unsigned char zero;
+	//~ unsigned char equal;
+	//~ unsigned char carry;
+	//~ unsigned char overflow;
+	//~ unsigned char zero;
 	
 	
-	};
-struct chiara_compute_global {
-	unsigned long register32[31];
-	unsigned long long register64[31];
-	unsigned short register16[31];
-	unsigned char register8[31];
-	long long *mem;// not used now 
-	unsigned long specialregister;
-	struct chiara_compute_flags flags;
-	};
-	struct chiara_compute_global global_struct;
+	//~ };
+//~ struct chiara_compute_global {
+	//~ unsigned long register32[31];
+	//~ unsigned long long register64[31];
+	//~ unsigned short register16[31];
+	//~ unsigned char register8[31];
+	//~ long long *mem;// not used now 
+	//~ unsigned long specialregister;
+	//~ struct chiara_compute_flags flags;
+	//~ };
+	//~ struct chiara_compute_global global_struct;
 void chiara_emul_bigendian_ppc(unsigned char *instruction,int size) ;
 void chiara_emul_littleendian_ppc(unsigned char *instruction,int size);
 
