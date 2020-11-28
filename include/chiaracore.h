@@ -71,5 +71,11 @@ struct chiara_compute_global global_struct;
 #define ACTION_DEC 0x7
 #define ACTION_DISP_REG 0x8
 
-// first reg val,second is the second reg,third is the third reg ,action is the action perfomed on xor or ? , architecture is the source architecture x86p powerpc ?,
-void chiara_action_reg(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture);
+
+	#define GPR8BITS 1
+	#define GPR16BITS 2
+	#define GPR32BITS 3
+	#define GPR64BITS 4
+
+// first reg val,second is the second reg,third is the third reg ,action is the action perfomed on xor or ? , architecture is the source architecture x86p powerpc ?,datahardcoded is usefull for MOV AND DIP operation 
+void chiara_action_reg(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);
