@@ -43,10 +43,11 @@
 #include <limits.h>
    #include <unistd.h>
 
-void gaspard_clear_flags( ) {
+void chiara_clear_flags( ) {
 			global_struct.flags.equal =0;
 			global_struct.flags.carry =0;
 			global_struct.flags.overflow =0;
+			global_struct.flags.zero =0;
 
 }
 void gaspard_check_flags_result(long res) {
@@ -98,13 +99,9 @@ void gaspard_check_flags( long a, long b) {
 struct chiara_gpr_organization{
 	unsigned char typeofgpr;
 	unsigned char position;
-	union {
-		char data8;
-		short data16;
-		long data32;
-		long long data64;
-		
-		};
+	long long data;
+
+
 	};
 	
  struct chiara_gpr_organization gpr_orga_array[128] = { 
@@ -237,7 +234,269 @@ struct chiara_gpr_organization{
 {.typeofgpr=GPR64BITS,.position=30},
 {.typeofgpr=GPR64BITS,.position=31},	
 };
+void chiara_check_gpr(struct  chiara_gpr_organization *tocheck1,struct  chiara_gpr_organization *tocheck2,struct  chiara_gpr_organization *tocheck3,long long data) {
+chiara_clear_flags();
+	if(tocheck1->typeofgpr==GPR64BITS) {
+		// no check to do 
+		if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+			}
+			if(tocheck1->data & 1<<63) {
+				
+			global_struct.flags.carry =1;
+
+				
+				}
+			
+		return;
+		}
+	
+	if(tocheck1->typeofgpr==GPR32BITS) {
+		// verifier l'overflow
 		
+		 if ( tocheck1->data < -2147483648 ||  tocheck1->data < 2147483647) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+			}
+	if(tocheck1->data & 1<<31) {
+				
+			global_struct.flags.carry =1;
+
+				
+				}	
+		}
+	if(tocheck1->typeofgpr==GPR16BITS) {
+		// verifier l'overflow
+		
+		 if ( tocheck1->data < -32768 ||  tocheck1->data < 32767) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+	
+	if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+			}
+	
+		if(tocheck1->data & 1<<15) {
+				
+			global_struct.flags.carry =1;
+	}	
+	
+		}
+	if(tocheck1->typeofgpr==GPR8BITS) {
+		// verifier l'overflow
+		 if ( tocheck1->data < -128 ||  tocheck1->data < 127) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			}
+	if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+	}	
+	if(tocheck1->data & 1<<7) {
+				
+			global_struct.flags.carry =1;
+	}			
+		
+		}
+	if(tocheck2!=0) {
+	if(tocheck2->typeofgpr==GPR64BITS) {
+		if(tocheck2->data <0) {
+			global_struct.flags.zero =1;
+			}
+	if(tocheck2->data & 1<<63) {
+				
+			global_struct.flags.carry =1;
+	}
+	
+		}
+	
+	if(tocheck2->typeofgpr==GPR32BITS) {
+		// verifier l'overflow
+		if(tocheck2->data & 1<<31) {
+				
+			global_struct.flags.carry =1;
+			}
+		 if ( tocheck2->data < -2147483648 ||  tocheck2->data < 2147483647) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			}
+	if(tocheck2->data <0) {
+			global_struct.flags.zero =1;
+			}
+		}
+	if(tocheck2->typeofgpr==GPR16BITS) {
+		
+			if(tocheck2->data & 1<<15) {
+				
+			global_struct.flags.carry =1;
+			}
+		
+		 if ( tocheck2->data < -32768 ||  tocheck2->data < 32767) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			}
+	if(tocheck2->data <0) {
+			global_struct.flags.zero =1;
+			}
+
+		}
+	if(tocheck2->typeofgpr==GPR8BITS) {
+		// verifier l'overflow
+		 if ( tocheck2->data < -128 ||  tocheck2->data < 127) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(tocheck2->data <0) {
+			
+			global_struct.flags.zero =1;
+			
+			}
+			
+	if(tocheck2->data & 1<<7) {
+				
+			global_struct.flags.carry =1;
+			
+			}
+		}	
+		
+}
+	if(tocheck3!=0) {
+	if(tocheck3->typeofgpr==GPR64BITS) {
+		if(tocheck3->data & 1<<63) {
+				
+			global_struct.flags.carry =1;
+			}
+			
+		if(tocheck3->data <0) {
+			global_struct.flags.zero =1;
+		
+			}
+	
+		}
+	
+	if(tocheck3->typeofgpr==GPR32BITS) {
+		if(tocheck3->data & 1<<31) {
+				
+			global_struct.flags.carry =1;
+			}
+		// verifier l'overflow
+		if(tocheck3->data <0) {
+			global_struct.flags.zero =1;
+			}
+		 if ( tocheck3->data < -2147483648 ||  tocheck3->data < 2147483647) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		}
+	if(tocheck3->typeofgpr==GPR16BITS) {
+		if(tocheck3->data & 1<<15) {
+				
+			global_struct.flags.carry =1;
+			}
+		
+		
+		// verifier l'overflow
+		if(tocheck3->data <0) {
+			global_struct.flags.zero =1;
+			}
+		 if ( tocheck3->data < -32768 ||  tocheck3->data < 32767) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		}
+	if(tocheck3->typeofgpr==GPR8BITS) {
+		
+		if(tocheck3->data & 1<<7) {
+				
+			global_struct.flags.carry =1;
+			}
+		
+		// verifier l'overflow
+		if(tocheck3->data <0) {
+			global_struct.flags.zero =1;
+			}
+		 if ( tocheck3->data < -128 ||  tocheck3->data < 127) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		
+		}	
+		
+}
+// data check
+if(data != NODATA) {
+		if(data <0) {
+			global_struct.flags.zero =1;
+			}
+if(tocheck1->typeofgpr==GPR64BITS) {
+		// no check to do 
+	
+			if(data & 1<<63) {
+				
+			global_struct.flags.carry =1;
+
+				
+				}
+			
+		}
+	
+	if(tocheck1->typeofgpr==GPR32BITS) {
+		// verifier l'overflow
+		
+		 if ( data < -2147483648 ||  data < 2147483647) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(data <0) {
+			global_struct.flags.zero =1;
+			}
+	if(data & 1<<31) {
+				
+			global_struct.flags.carry =1;
+
+				
+				}	
+		}
+	if(tocheck1->typeofgpr==GPR16BITS) {
+		// verifier l'overflow
+		
+		 if ( data < -32768 ||  data < 32767) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+	
+	if(data <0) {
+			global_struct.flags.zero =1;
+			}
+	
+		if(data & 1<<15) {
+				
+			global_struct.flags.carry =1;
+	}	
+	
+		}
+	if(tocheck1->typeofgpr==GPR8BITS) {
+		// verifier l'overflow
+		 if ( data < -128 ||  data < 127) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			}
+	if(data <0) {
+			global_struct.flags.zero =1;
+	}	
+	if(data & 1<<7) {
+				
+			global_struct.flags.carry =1;
+	}			
+		
+		}	
+	
+}
+
+}	
 void chiara_action_reg(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded) {
 	
 	switch(architecture) {
@@ -245,11 +504,47 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 		case X86_IMAGE:
 		
 		if(action == ACTION_AND) {
-			
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+
 			// and reg
-			
+			gpr_orga_array[first].data &= gpr_orga_array[second].data;
+			} else if(action == ACTION_XOR) {
+								chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
+	
+			// ACTION_XOR reg
+			gpr_orga_array[first].data = ~gpr_orga_array[first].data;
+			} else if(action == ACTION_OR) {
+					chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
+	
+			// ACTION_OR reg
+			gpr_orga_array[first].data |= gpr_orga_array[second].data;
+			} else if(action == ACTION_ADD) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_ADD reg
+			gpr_orga_array[first].data += gpr_orga_array[second].data;
+			} else if(action == ACTION_SUB) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data -= gpr_orga_array[second].data;
+			} else if(action == ACTION_INC) {
+			chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
+
+			// ACTION_INC reg
+			gpr_orga_array[first].data = gpr_orga_array[first].data+1;
+			} else if(action == ACTION_DEC) {
+			chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
+
+			// ACTION_DEC reg
+			gpr_orga_array[first].data = gpr_orga_array[first].data-1;
+			} else if(action == ACTION_DISP_REG) {
+				// c'est l'hypothèse dans laquelle un GPR se voit attribuer une valeur arbitraire
+			chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			gpr_orga_array[first].data = datahardcoded;
 			}
-		
+		 
 		
 		 break;
 		case POWERPC_LITTLENDIAN_IMAGE: break;
