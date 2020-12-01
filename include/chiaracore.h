@@ -70,6 +70,13 @@ struct chiara_compute_global global_struct;
 #define ACTION_INC 0x6
 #define ACTION_DEC 0x7
 #define ACTION_DISP_REG 0x8
+#define ACTION_DIVUNSIGNED 0x9
+#define ACTION_DIVSIGNED 0xa
+#define ACTION_MULSIGNED 0xb
+#define ACTION_MULUNSIGNED 0xc
+#define ACTION_SHIFTLEFT 0xd
+#define ACTION_SHIFTRIGHT 0xe
+#define ACTION_MODULO 0xf
 
 
 #define GPR8BITS 1
