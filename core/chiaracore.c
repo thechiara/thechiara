@@ -509,10 +509,10 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 			// and reg
 			gpr_orga_array[first].data &= gpr_orga_array[second].data;
 			} else if(action == ACTION_XOR) {
-								chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
+								chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 	
 			// ACTION_XOR reg
-			gpr_orga_array[first].data = ~gpr_orga_array[first].data;
+			gpr_orga_array[first].data ^= gpr_orga_array[second].data;
 			} else if(action == ACTION_OR) {
 					chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
 	
@@ -565,12 +565,48 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 			chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 //ACTION_MODULO
 			gpr_orga_array[first].data = gpr_orga_array[first].data % gpr_orga_array[second].data;
+			}else if(action == ACTION_NOT) {
+				
+			chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
+//ACTION_NOT
+			gpr_orga_array[first].data = ~gpr_orga_array[first].data ;
 			}
 		 
 		
 		 break;
 		case POWERPC_LITTLENDIAN_IMAGE: 
-		// demain faire ça 
+		if(action == ACTION_AND) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// and reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data & gpr_orga_array[third].data;
+			} else if(action == ACTION_XOR) {
+				chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_XOR reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ^ gpr_orga_array[third].data;
+			} else if(action == ACTION_OR) {
+		chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data | gpr_orga_array[third].data;
+			} else if(action == ACTION_ADD) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_ADD reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data +  gpr_orga_array[third].data;
+			} else if(action == ACTION_SUB) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data - gpr_orga_array[third].data;
+			}
+
+
+
+
+
+
 		break;
 		case POWERPC_BIGNDIAN_IMAGE: break;
 		

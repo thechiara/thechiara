@@ -77,6 +77,7 @@ struct chiara_compute_global global_struct;
 #define ACTION_SHIFTLEFT 0xd
 #define ACTION_SHIFTRIGHT 0xe
 #define ACTION_MODULO 0xf
+#define ACTION_NOT 0x10
 
 
 #define GPR8BITS 1

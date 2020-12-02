@@ -25,6 +25,7 @@
 #include "ppc.h"
 #include <byteswap.h>
 #include <chiaracompute.h>
+#include <chiaracore.h>
 
 /* This file holds the PowerPC opcode table.  The opcode table
    includes almost all of the extended instruction mnemonics.  This
@@ -5231,17 +5232,17 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"cmpi",	OP(11),		OP_MASK,     PPC,	PPCVLE,		{BF, L32OPT, RA, SI}},
 {"cmpi",	OP(11),		OP_MASK,     PWRCOM,	PPC|PPCVLE,	{BF, RA, SI}},
 
-{"addic",	OP(12),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, SI}},
+{"addic",	OP(12),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, SI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"ai",		OP(12),		OP_MASK,     PWRCOM,	PPCVLE,		{RT, RA, SI}},
-{"subic",	OP(12),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, NSI}},
+{"subic",	OP(12),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, NSI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SUB},
 
-{"addic.",	OP(13),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, SI}},
+{"addic.",	OP(13),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, SI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"ai.",		OP(13),		OP_MASK,     PWRCOM,	PPCVLE,		{RT, RA, SI}},
 {"subic.",	OP(13),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, NSI}},
 
 {"li",		OP(14),		DRA_MASK,    PPCCOM,	PPCVLE,		{RT, SI}},
 {"lil",		OP(14),		DRA_MASK,    PWRCOM,	PPCVLE,		{RT, SI}},
-{"addi",	OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA0, SI}},
+{"addi",	OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA0, SI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"cal",		OP(14),		OP_MASK,     PWRCOM,	PPCVLE,		{RT, D, RA0}},
 {"subi",	OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA0, NSI}},
 {"la",		OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, D, RA0}},
@@ -6116,11 +6117,11 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"rlnm.",	M(23,1),	M_MASK,	     PWRCOM,	PPCVLE,		{RA, RS, RB, MBE, ME}},
 
 {"nop",		OP(24),		0xffffffff,  PPCCOM,	PPCVLE,		{0}},
-{"ori",		OP(24),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
-{"oril",	OP(24),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI}},
+{"ori",		OP(24),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
+{"oril",	OP(24),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
 
-{"oris",	OP(25),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
-{"oriu",	OP(25),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI}},
+{"oris",	OP(25),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
+{"oriu",	OP(25),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
 
 {"xnop",	OP(26),		0xffffffff,  PPCCOM,	PPCVLE,		{0}},
 {"xori",	OP(26),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
@@ -6129,11 +6130,11 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"xoris",	OP(27),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
 {"xoriu",	OP(27),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI}},
 
-{"andi.",	OP(28),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
-{"andil.",	OP(28),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI}},
+{"andi.",	OP(28),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
+{"andil.",	OP(28),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
 
-{"andis.",	OP(29),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
-{"andiu.",	OP(29),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI}},
+{"andis.",	OP(29),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
+{"andiu.",	OP(29),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
 
 {"rotldi",	MD(30,0,0),	MDMB_MASK,   PPC64,	PPCVLE,		{RA, RS, SH6}},
 {"clrldi",	MD(30,0,0),	MDSH_MASK,   PPC64,	PPCVLE,		{RA, RS, MB6}},
@@ -6212,9 +6213,9 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"mulhdu",	XO(31,9,0,0),	XO_MASK,     PPC64,	0,		{RT, RA, RB}},
 {"mulhdu.",	XO(31,9,0,1),	XO_MASK,     PPC64,	0,		{RT, RA, RB}},
 
-{"addc",	XO(31,10,0,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"addc",	XO(31,10,0,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"a",		XO(31,10,0,0),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
-{"addc.",	XO(31,10,0,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"addc.",	XO(31,10,0,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"a.",		XO(31,10,0,1),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
 
 {"mulhwu",	XO(31,11,0,0),	XO_MASK,     PPC,	0,		{RT, RA, RB}},
@@ -6256,8 +6257,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"sld",		XRC(31,27,0),	X_MASK,	     PPC64,	0,		{RA, RS, RB}},
 {"sld.",	XRC(31,27,1),	X_MASK,	     PPC64,	0,		{RA, RS, RB}},
 
-{"and",		XRC(31,28,0),	X_MASK,	     COM,	0,		{RA, RS, RB}},
-{"and.",	XRC(31,28,1),	X_MASK,	     COM,	0,		{RA, RS, RB}},
+{"and",		XRC(31,28,0),	X_MASK,	     COM,	0,		{RA, RS, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
+{"and.",	XRC(31,28,1),	X_MASK,	     COM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 
 {"maskg",	XRC(31,29,0),	X_MASK,	     M601,	PPCA2,		{RA, RS, RB}},
 {"maskg.",	XRC(31,29,1),	X_MASK,	     M601,	PPCA2,		{RA, RS, RB}},
@@ -6426,9 +6427,9 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"subfe.",	XO(31,136,0,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
 {"sfe.",	XO(31,136,0,1),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
 
-{"adde",	XO(31,138,0,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"adde",	XO(31,138,0,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"ae",		XO(31,138,0,0),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
-{"adde.",	XO(31,138,0,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"adde.",	XO(31,138,0,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"ae.",		XO(31,138,0,1),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
 
 {"stxsiwx",	X(31,140),	XX1_MASK,    PPCVSX2,	0,		{XS6, RA0, RB}},
@@ -7353,14 +7354,14 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"subfco",	XO(31,8,1,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
 {"sfo",		XO(31,8,1,0),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
-{"subco",	XO(31,8,1,0),	XO_MASK,     PPCCOM,	0,		{RT, RB, RA}},
+{"subco",	XO(31,8,1,0),	XO_MASK,     PPCCOM,	0,		{RT, RB, RA} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SUB},
 {"subfco.",	XO(31,8,1,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
 {"sfo.",	XO(31,8,1,1),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
-{"subco.",	XO(31,8,1,1),	XO_MASK,     PPCCOM,	0,		{RT, RB, RA}},
+{"subco.",	XO(31,8,1,1),	XO_MASK,     PPCCOM,	0,		{RT, RB, RA},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SUB},
 
-{"addco",	XO(31,10,1,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"addco",	XO(31,10,1,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"ao",		XO(31,10,1,0),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
-{"addco.",	XO(31,10,1,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"addco.",	XO(31,10,1,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"ao.",		XO(31,10,1,1),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
 
 {"lxsspx",	X(31,524),	XX1_MASK,    PPCVSX2,	0,		{XT6, RA0, RB}},
@@ -10584,6 +10585,21 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 					
 				  signed long long valuereturned = 	powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&error);
 						if(error !=1) {
+							if(*powerpc_opcodes[x].to_chiara_gpr != 0) {
+								// faire une boucle pour etraire
+								unsigned long GPR[2];
+								unsigned long ERRORarray[2];
+							GPR[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
+							GPR[1] =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);
+							GPR[2] =	powerpc_operands[powerpc_opcodes[x].operands[2]].extract(instruction,0,&ERRORarray[2]);
+						
+							if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1 &&  ERRORarray[2] !=1) {
+								// problem to mov to gpr 
+							powerpc_opcodes[x].to_chiara_gpr (GPR[0],GPR[1],GPR[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,0);
+
+								}
+								
+								}
 					// We have found our instruction great !
 					break;
 					

@@ -63,8 +63,8 @@ struct powerpc_opcode
      operand table.  They appear in the order which the operands must
      appear in assembly code, and are terminated by a zero.  */
   unsigned char operands[8];
-  
-  long(*traductor) (struct chiara_ppc_execute*) ; // this function is used to do the operand and tell chiaraglobal about that
+  unsigned char gpraction; // assign macro contained in chiaracore.h
+  void (*to_chiara_gpr) (unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);
 };
 
 /* The table itself is sorted by major opcode number, and is otherwise
