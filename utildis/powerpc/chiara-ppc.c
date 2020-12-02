@@ -10587,6 +10587,13 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 						if(error !=1) {
 							if(*powerpc_opcodes[x].to_chiara_gpr != 0) {
 								// faire une boucle pour etraire
+								
+								if(powerpc_opcodes[x].gpraction==ACTION_DISP_REG) {
+									
+								powerpc_opcodes[x].to_chiara_gpr (0,0,0,ACTION_DISP_REG,POWERPC_LITTLENDIAN_IMAGE,0);
+
+									
+									} else {
 								unsigned long GPR[2];
 								unsigned long ERRORarray[2];
 							GPR[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
@@ -10597,8 +10604,11 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 								// problem to mov to gpr 
 							powerpc_opcodes[x].to_chiara_gpr (GPR[0],GPR[1],GPR[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,0);
 
-								}
-								
+								} else {
+									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1],ERRORarray[2]);
+									
+									}
+							}	
 								}
 					// We have found our instruction great !
 					break;
