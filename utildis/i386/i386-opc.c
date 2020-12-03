@@ -51,6 +51,13 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 		if( tmp !=0) {
 			
 			printf("X86 instruction -> %s \n",tmp->name);
+			if(*tmp->to_chiara_gpr != 0) {
+				// get attribute 
+				
+				unsigned long gpr[2];
+				unsigned long errors[2];
+				
+				}
 			statusarray += tmp->opcode_length;
 			}
 		
