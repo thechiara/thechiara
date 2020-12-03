@@ -5240,8 +5240,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"ai.",		OP(13),		OP_MASK,     PWRCOM,	PPCVLE,		{RT, RA, SI}},
 {"subic.",	OP(13),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA, NSI}},
 
-{"li",		OP(14),		DRA_MASK,    PPCCOM,	PPCVLE,		{RT, SI}},
-{"lil",		OP(14),		DRA_MASK,    PWRCOM,	PPCVLE,		{RT, SI}},
+{"li",		OP(14),		DRA_MASK,    PPCCOM,	PPCVLE,		{RT, SI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_DISP_REG},
+{"lil",		OP(14),		DRA_MASK,    PWRCOM,	PPCVLE,		{RT, SI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_DISP_REG},
 {"addi",	OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA0, SI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"cal",		OP(14),		OP_MASK,     PWRCOM,	PPCVLE,		{RT, D, RA0}},
 {"subi",	OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA0, NSI}},
@@ -6124,11 +6124,11 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"oriu",	OP(25),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
 
 {"xnop",	OP(26),		0xffffffff,  PPCCOM,	PPCVLE,		{0}},
-{"xori",	OP(26),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
-{"xoril",	OP(26),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI}},
+{"xori",	OP(26),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_XOR},
+{"xoril",	OP(26),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_XOR},
 
-{"xoris",	OP(27),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI}},
-{"xoriu",	OP(27),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI}},
+{"xoris",	OP(27),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_XOR},
+{"xoriu",	OP(27),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_XOR},
 
 {"andi.",	OP(28),		OP_MASK,     PPCCOM,	PPCVLE,		{RA, RS, UI} ,.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
 {"andil.",	OP(28),		OP_MASK,     PWRCOM,	PPCVLE,		{RA, RS, UI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
@@ -6244,21 +6244,21 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"lwzx",	X(31,23),	X_MASK,	     PPCCOM,	0,		{RT, RA0, RB}},
 {"lx",		X(31,23),	X_MASK,	     PWRCOM,	0,		{RT, RA, RB}},
 
-{"slw",		XRC(31,24,0),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}},
-{"sl",		XRC(31,24,0),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}},
-{"slw.",	XRC(31,24,1),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}},
-{"sl.",		XRC(31,24,1),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}},
+{"slw",		XRC(31,24,0),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
+{"sl",		XRC(31,24,0),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
+{"slw.",	XRC(31,24,1),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
+{"sl.",		XRC(31,24,1),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
 
 {"cntlzw",	XRC(31,26,0),	XRB_MASK,    PPCCOM,	0,		{RA, RS}},
 {"cntlz",	XRC(31,26,0),	XRB_MASK,    PWRCOM,	0,		{RA, RS}},
 {"cntlzw.",	XRC(31,26,1),	XRB_MASK,    PPCCOM,	0,		{RA, RS}},
 {"cntlz.",	XRC(31,26,1),	XRB_MASK,    PWRCOM,	0,		{RA, RS}},
 
-{"sld",		XRC(31,27,0),	X_MASK,	     PPC64,	0,		{RA, RS, RB}},
-{"sld.",	XRC(31,27,1),	X_MASK,	     PPC64,	0,		{RA, RS, RB}},
+{"sld",		XRC(31,27,0),	X_MASK,	     PPC64,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
+{"sld.",	XRC(31,27,1),	X_MASK,	     PPC64,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
 
-{"and",		XRC(31,28,0),	X_MASK,	     COM,	0,		{RA, RS, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
-{"and.",	XRC(31,28,1),	X_MASK,	     COM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
+{"and",		XRC(31,28,0),	X_MASK,	     COM,	0,		{RA, RS, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
+{"and.",	XRC(31,28,1),	X_MASK,	     COM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_AND},
 
 {"maskg",	XRC(31,29,0),	X_MASK,	     M601,	PPCA2,		{RA, RS, RB}},
 {"maskg.",	XRC(31,29,1),	X_MASK,	     M601,	PPCA2,		{RA, RS, RB}},
@@ -6406,10 +6406,10 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"popcntb",	X(31,122),	XRB_MASK,    POWER5,	0,		{RA, RS}},
 
-{"not",		XRC(31,124,0),	X_MASK,	     COM,	0,		{RA, RSB}},
-{"nor",		XRC(31,124,0),	X_MASK,	     COM,	0,		{RA, RS, RB}},
-{"not.",	XRC(31,124,1),	X_MASK,	     COM,	0,		{RA, RSB}},
-{"nor.",	XRC(31,124,1),	X_MASK,	     COM,	0,		{RA, RS, RB}},
+{"not",		XRC(31,124,0),	X_MASK,	     COM,	0,		{RA, RSB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_NOT},
+{"nor",		XRC(31,124,0),	X_MASK,	     COM,	0,		{RA, RS, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
+{"not.",	XRC(31,124,1),	X_MASK,	     COM,	0,		{RA, RSB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
+{"nor.",	XRC(31,124,1),	X_MASK,	     COM,	0,		{RA, RS, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
 
 {"dcbfep",	XRT(31,127,0),	XRT_MASK, E500MC|PPCA2, 0,		{RA0, RB}},
 
@@ -6460,8 +6460,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"slq",		XRC(31,152,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
 {"slq.",	XRC(31,152,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
 
-{"sle",		XRC(31,153,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
-{"sle.",	XRC(31,153,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
+{"sle",		XRC(31,153,0),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
+{"sle.",	XRC(31,153,1),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTLEFT},
 
 {"prtyw",	X(31,154),    XRB_MASK, POWER6|PPCA2|PPC476, 0,		{RA, RS}},
 
@@ -6623,9 +6623,9 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"modud",	X(31,265),	X_MASK,	     POWER9,	0,		{RT, RA, RB}},
 
-{"add",		XO(31,266,0,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"add",		XO(31,266,0,0),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"cax",		XO(31,266,0,0),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
-{"add.",	XO(31,266,0,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB}},
+{"add.",	XO(31,266,0,1),	XO_MASK,     PPCCOM,	0,		{RT, RA, RB},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"cax.",	XO(31,266,0,1),	XO_MASK,     PWRCOM,	0,		{RT, RA, RB}},
 
 {"moduw",	X(31,267),	X_MASK,	     POWER9,	0,		{RT, RA, RB}},
@@ -6727,8 +6727,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"dcread",	X(31,326),	X_MASK,	  PPC476|TITAN,	0,		{RT, RA0, RB}},
 
-{"div",		XO(31,331,0,0),	XO_MASK,     M601,	0,		{RT, RA, RB}},
-{"div.",	XO(31,331,0,1),	XO_MASK,     M601,	0,		{RT, RA, RB}},
+{"div",		XO(31,331,0,0),	XO_MASK,     M601,	0,		{RT, RA, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_DIV},
+{"div.",	XO(31,331,0,1),	XO_MASK,     M601,	0,		{RT, RA, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_DIV},
 
 {"lxvdsx",	X(31,332),	XX1_MASK,    PPCVSX,	0,		{XT6, RA0, RB}},
 
@@ -7063,10 +7063,10 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"yield",	0x7f7bdb78,	0xffffffff,  POWER7,	0,		{0}},
 {"mdoio",	0x7fbdeb78,	0xffffffff,  POWER7,	0,		{0}},
 {"mdoom",	0x7fdef378,	0xffffffff,  POWER7,	0,		{0}},
-{"mr",		XRC(31,444,0),	X_MASK,	     COM,	0,		{RA, RSB}},
-{"or",		XRC(31,444,0),	X_MASK,	     COM,	0,		{RA, RS, RB}},
-{"mr.",		XRC(31,444,1),	X_MASK,	     COM,	0,		{RA, RSB}},
-{"or.",		XRC(31,444,1),	X_MASK,	     COM,	0,		{RA, RS, RB}},
+{"mr",		XRC(31,444,0),	X_MASK,	     COM,	0,		{RA, RSB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_DISP_REG_COPY},
+{"or",		XRC(31,444,0),	X_MASK,	     COM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
+{"mr.",		XRC(31,444,1),	X_MASK,	     COM,	0,		{RA, RSB} , .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_DISP_REG_COPY},
+{"or.",		XRC(31,444,1),	X_MASK,	     COM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_OR},
 
 {"setnbc",	X(31,448),	XRB_MASK,    POWER10,	0,		{RT, BI}},
 
@@ -7510,11 +7510,11 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"stfsx",	X(31,663),	X_MASK,	     COM,	PPCEFS,		{FRS, RA0, RB}},
 
-{"srq",		XRC(31,664,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
-{"srq.",	XRC(31,664,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
+{"srq",		XRC(31,664,0),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srq.",	XRC(31,664,1),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
-{"sre",		XRC(31,665,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
-{"sre.",	XRC(31,665,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
+{"sre",		XRC(31,665,0),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"sre.",	XRC(31,665,1),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"sthdcbx",	X(31,674),	X_MASK,      E200Z4,	0,		{RS, RA, RB}},
 {"sthdx",	X(31,675),	X_MASK,	 E500MC|E200Z4,	0,		{RS, RA, RB}},
@@ -7531,8 +7531,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"stfsux",	X(31,695),	X_MASK,	     COM,	PPCEFS,		{FRS, RAS, RB}},
 
-{"sriq",	XRC(31,696,0),	X_MASK,	     M601,	0,		{RA, RS, SH}},
-{"sriq.",	XRC(31,696,1),	X_MASK,	     M601,	0,		{RA, RS, SH}},
+{"sriq",	XRC(31,696,0),	X_MASK,	     M601,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"sriq.",	XRC(31,696,1),	X_MASK,	     M601,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"stwdcbx",	X(31,706),	X_MASK,	     E200Z4,	0,		{RS, RA, RB}},
 {"stwdx",	X(31,707),	X_MASK,	 E500MC|E200Z4,	0,		{RS, RA, RB}},
@@ -7564,11 +7564,11 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"stfdx",	X(31,727),	X_MASK,	     COM,	PPCEFS,		{FRS, RA0, RB}},
 
-{"srlq",	XRC(31,728,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
-{"srlq.",	XRC(31,728,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
+{"srlq",	XRC(31,728,0),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srlq.",	XRC(31,728,1),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
-{"sreq",	XRC(31,729,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
-{"sreq.",	XRC(31,729,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
+{"sreq",	XRC(31,729,0),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"sreq.",	XRC(31,729,1),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"mftgpr",	XRC(31,735,0),	XRA_MASK,    POWER6,	POWER7,		{RT, FRB}},
 {"stfdepx",	X(31,735),	X_MASK,	  E500MC|PPCA2, 0,		{FRS, RA0, RB}},
@@ -7610,8 +7610,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"stfdux",	X(31,759),	X_MASK,	     COM,	PPCEFS,		{FRS, RAS, RB}},
 
-{"srliq",	XRC(31,760,0),	X_MASK,	     M601,	0,		{RA, RS, SH}},
-{"srliq.",	XRC(31,760,1),	X_MASK,	     M601,	0,		{RA, RS, SH}},
+{"srliq",	XRC(31,760,0),	X_MASK,	     M601,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srliq.",	XRC(31,760,1),	X_MASK,	     M601,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"lvsm",	X(31,773),	X_MASK,	     E6500,	0,		{VD, RA0, RB}},
 
@@ -7646,13 +7646,13 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"lfdpx",	X(31,791),    X_MASK|Q_MASK, POWER6,	POWER7,		{FRTp, RA0, RB}},
 {"lfqx",	X(31,791),	X_MASK,	     POWER2,	0,		{FRT, RA, RB}},
 
-{"sraw",	XRC(31,792,0),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}},
-{"sra",		XRC(31,792,0),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}},
-{"sraw.",	XRC(31,792,1),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}},
-{"sra.",	XRC(31,792,1),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}},
+{"sraw",	XRC(31,792,0),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"sra",		XRC(31,792,0),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"sraw.",	XRC(31,792,1),	X_MASK,	     PPCCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"sra.",	XRC(31,792,1),	X_MASK,	     PWRCOM,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
-{"srad",	XRC(31,794,0),	X_MASK,	     PPC64,	0,		{RA, RS, RB}},
-{"srad.",	XRC(31,794,1),	X_MASK,	     PPC64,	0,		{RA, RS, RB}},
+{"srad",	XRC(31,794,0),	X_MASK,	     PPC64,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srad.",	XRC(31,794,1),	X_MASK,	     PPC64,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"evlddepx",    VX (31, 1598),	VX_MASK,     PPCSPE,	0,		{RT, RA, RB}},
 {"lfddx",	X(31,803),	X_MASK,	     E500MC,	0,		{FRT, RA, RB}},
@@ -7676,10 +7676,10 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"lfqux",	X(31,823),	X_MASK,	     POWER2,	0,		{FRT, RA, RB}},
 
-{"srawi",	XRC(31,824,0),	X_MASK,	     PPCCOM,	0,		{RA, RS, SH}},
-{"srai",	XRC(31,824,0),	X_MASK,	     PWRCOM,	0,		{RA, RS, SH}},
-{"srawi.",	XRC(31,824,1),	X_MASK,	     PPCCOM,	0,		{RA, RS, SH}},
-{"srai.",	XRC(31,824,1),	X_MASK,	     PWRCOM,	0,		{RA, RS, SH}},
+{"srawi",	XRC(31,824,0),	X_MASK,	     PPCCOM,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srai",	XRC(31,824,0),	X_MASK,	     PWRCOM,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srawi.",	XRC(31,824,1),	X_MASK,	     PPCCOM,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srai.",	XRC(31,824,1),	X_MASK,	     PWRCOM,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"sradi",	XS(31,413,0),	XS_MASK,     PPC64,	0,		{RA, RS, SH6}},
 {"sradi.",	XS(31,413,1),	XS_MASK,     PPC64,	0,		{RA, RS, SH6}},
@@ -7768,8 +7768,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"sraq",	XRC(31,920,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
 {"sraq.",	XRC(31,920,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
 
-{"srea",	XRC(31,921,0),	X_MASK,	     M601,	0,		{RA, RS, RB}},
-{"srea.",	XRC(31,921,1),	X_MASK,	     M601,	0,		{RA, RS, RB}},
+{"srea",	XRC(31,921,0),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"srea.",	XRC(31,921,1),	X_MASK,	     M601,	0,		{RA, RS, RB}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"extsh",	XRC(31,922,0),	XRB_MASK,    PPCCOM,	0,		{RA, RS}},
 {"exts",	XRC(31,922,0),	XRB_MASK,    PWRCOM,	0,		{RA, RS}},
@@ -7808,8 +7808,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 
 {"stfqux",	X(31,951),	X_MASK,	     POWER2,	0,		{FRS, RA, RB}},
 
-{"sraiq",	XRC(31,952,0),	X_MASK,	     M601,	0,		{RA, RS, SH}},
-{"sraiq.",	XRC(31,952,1),	X_MASK,	     M601,	0,		{RA, RS, SH}},
+{"sraiq",	XRC(31,952,0),	X_MASK,	     M601,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
+{"sraiq.",	XRC(31,952,1),	X_MASK,	     M601,	0,		{RA, RS, SH}, .to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_SHIFTRIGHT},
 
 {"extsb",	XRC(31,954,0),	XRB_MASK,    PPC,	0,		{RA, RS}},
 {"extsb.",	XRC(31,954,1),	XRB_MASK,    PPC,	0,		{RA, RS}},
@@ -10586,11 +10586,51 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 				  signed long long valuereturned = 	powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&error);
 						if(error !=1) {
 							if(*powerpc_opcodes[x].to_chiara_gpr != 0) {
-								// faire une boucle pour etraire
+
+
+							if(powerpc_opcodes[x].gpraction==ACTION_NOT) {
 								
-								if(powerpc_opcodes[x].gpraction==ACTION_DISP_REG) {
+							unsigned long GPR_data[1];
+								unsigned long ERRORarray[1];
+							GPR_data[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
+							GPR_data[1] =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);		
+								
+								if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1) {
+								powerpc_opcodes[x].to_chiara_gpr (31+GPR_data[0],31+GPR_data[1],0,ACTION_NOT,POWERPC_LITTLENDIAN_IMAGE,0);	
+
+								} else {
+									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1]);
 									
-								powerpc_opcodes[x].to_chiara_gpr (0,0,0,ACTION_DISP_REG,POWERPC_LITTLENDIAN_IMAGE,0);
+									}
+										
+								} else if(powerpc_opcodes[x].gpraction==ACTION_DISP_REG_COPY) {
+								
+							unsigned long GPR_data[1];
+								unsigned long ERRORarray[1];
+							GPR_data[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
+							GPR_data[1] =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);		
+								
+								if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1) {
+								powerpc_opcodes[x].to_chiara_gpr (31+GPR_data[0],31+GPR_data[1],0,ACTION_DISP_REG_COPY,POWERPC_LITTLENDIAN_IMAGE,0);	
+
+								} else {
+									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1]);
+									
+									}
+										
+								}	else	if(powerpc_opcodes[x].gpraction==ACTION_DISP_REG) {
+								
+							unsigned long GPR_data[1];
+								unsigned long ERRORarray[1];
+							GPR_data[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
+							GPR_data[1] =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);	
+							if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1) {
+								powerpc_opcodes[x].to_chiara_gpr (31+GPR_data[0],0,0,ACTION_DISP_REG,POWERPC_LITTLENDIAN_IMAGE,GPR_data[1]);
+
+								} else {
+									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1]);
+									
+									}	
 
 									
 									} else {
@@ -10602,7 +10642,7 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 						
 							if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1 &&  ERRORarray[2] !=1) {
 								// problem to mov to gpr 
-							powerpc_opcodes[x].to_chiara_gpr (GPR[0],GPR[1],GPR[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,0);
+							powerpc_opcodes[x].to_chiara_gpr (31+GPR[0],31+GPR[1],31+GPR[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,0);
 
 								} else {
 									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1],ERRORarray[2]);

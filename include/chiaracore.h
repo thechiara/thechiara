@@ -78,7 +78,8 @@ struct chiara_compute_global global_struct;
 #define ACTION_SHIFTRIGHT 0xe
 #define ACTION_MODULO 0xf
 #define ACTION_NOT 0x10
-
+#define ACTION_DISP_REG_COPY 0x11 //copy reg in another reg
+#define ACTION_DIV 0x12
 
 #define GPR8BITS 1
 #define GPR16BITS 2

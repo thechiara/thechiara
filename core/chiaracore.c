@@ -570,7 +570,12 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 			chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
 //ACTION_NOT
 			gpr_orga_array[first].data = ~gpr_orga_array[first].data ;
-			}
+			} else if(action == ACTION_DISP_REG_COPY) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_DISP_REG_COPY reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ;
+			} 
 		 
 		
 		 break;
@@ -600,6 +605,21 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 
 			// ACTION_SUB reg
 			gpr_orga_array[first].data = gpr_orga_array[second].data - gpr_orga_array[third].data;
+			} else if(action == ACTION_DISP_REG_COPY) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_DISP_REG_COPY reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ;
+			} else if(action == ACTION_DISP_REG) {
+						chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			// ACTION_DISP_REG reg
+			gpr_orga_array[first].data = datahardcoded ;
+			}else if(action == ACTION_DIV) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_DIV reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data / gpr_orga_array[third].data;
 			}
 
 
