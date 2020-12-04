@@ -53,10 +53,10 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 			printf("X86 instruction -> %s \n",tmp->name);
 			if(*tmp->to_chiara_gpr != 0) {
 				// get attribute 
-				
+				printf("about to call chiara \n");
 				unsigned long gpr[2];
 				unsigned long errors[2];
-				
+				// call chiare here
 				}
 			statusarray += tmp->opcode_length;
 			}
