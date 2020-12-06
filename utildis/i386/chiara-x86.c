@@ -11,6 +11,20 @@ const seg_entry ss = { "ss", 0x36 };
 const seg_entry es = { "es", 0x26 };
 const seg_entry fs = { "fs", 0x64 };
 const seg_entry gs = { "gs", 0x65 };
+static unsigned char *instruction_pointer;
+static unsigned long index_instruction;
+
+#define INTERNAL_DISASSEMBLER_ERROR "thechiara x86 error"
+
+typedef long bfd_signed_vma; 
+
+
+
+struct disassemble_info {
+int UNUSED;	
+	
+};
+#define STRING_COMMA_LEN(STR) (STR), (sizeof (STR) - 1)
 
 static struct insn_template * chiara_lookup_opcode(unsigned char instruction) {
 	
@@ -26,10 +40,52 @@ static struct insn_template * chiara_lookup_opcode(unsigned char instruction) {
 	return 0;
 	}
 // ok, x86 is a cisc ISA, I will scan the the instruction I when the program found a opcode -> increment the array with the size provided by the struct array
-	
+	static char obuf[100];
+static char *obufp;
+static char *mnemonicendp;
+static char scratchbuf[100];
+static unsigned char *start_codep;
+static unsigned char *insn_codep;
+static unsigned char *codep;
+static unsigned char *end_codep;
+static int last_lock_prefix;
+static int last_repz_prefix;
+static int last_repnz_prefix;
+static int last_data_prefix;
+static int last_addr_prefix;
+static int last_rex_prefix;
+static int last_seg_prefix;
+static int fwait_prefix;
+static char intel_syntax;
+static char intel_mnemonic = !SYSV386_COMPAT;
+static char open_char;
+static char close_char;
+static char separator_char;
+static char scale_char;
+static unsigned long start_pc;
+static int two_source_ops;
+static char op_out[MAX_OPERANDS][100];
+static int op_ad, op_index[MAX_OPERANDS];
+static int two_source_ops;
+static unsigned long op_address[MAX_OPERANDS];
+static unsigned long op_riprel[MAX_OPERANDS];
+enum x86_64_isa
+{
+  amd64 = 1,
+  intel64
+};
+
+static enum x86_64_isa isa64;
+
+
 void chiara_emul_x86(unsigned char *instruction,int size) {
+	start_codep = instruction;
+	end_codep = instruction+size;
+	codep = instruction;
+	index_instruction = 0;
+	start_pc = 0; // 
 	long statusarray=0;
-	for(;statusarray<size;statusarray++) {
+	for(;statusarray<size;statusarray++,index_instruction++,codep++) {
 		struct insn_template * tmp  = chiara_lookup_opcode(instruction[statusarray]) ;
 		if( tmp !=0) {
 			
@@ -42,6 +98,7 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 				// call chiare here
 				}
 			statusarray += tmp->opcode_length;
+			
 			}
 		
 		}
@@ -49,6 +106,20 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 }
 
 
+static int
+fetch_data (struct disassemble_info *info, unsigned char *addr)
+{
+	// instruction_pointer 
+	if(addr >= end_codep) {
+		
+		return 1;
+		}
+	for(int x = codep;x<addr;x++) {
+	index_instruction++;
+	codep++;
+}
+  return 0;
+}
 
 static void dofloat (int);
 static void OP_ST (int, int); // ok
@@ -134,7 +205,8 @@ static void MOVBE_Fixup (int, int);
 static void MOVSXD_Fixup (int, int);
 
 static void OP_Mask (int, int);
-
+static void
+intel_operand_size (int bytemode, int sizeflag);
 
 enum address_mode
 {
@@ -445,6 +517,7 @@ static int used_prefixes;
 #define SUFFIX_ALWAYS 4
 #define AFLAG 2
 #define DFLAG 1
+
 
 enum
 {
@@ -2900,29 +2973,14 @@ static const unsigned char twobyte_has_modrm[256] = {
 };
 
 
-static char obuf[100];
-static char *obufp;
-static char *mnemonicendp;
-static char scratchbuf[100];
-static unsigned char *start_codep;
-static unsigned char *insn_codep;
-static unsigned char *codep;
-static unsigned char *end_codep;
-static int last_lock_prefix;
-static int last_repz_prefix;
-static int last_repnz_prefix;
-static int last_data_prefix;
-static int last_addr_prefix;
-static int last_rex_prefix;
-static int last_seg_prefix;
-static int fwait_prefix;
+
 /* The active segment register prefix.  */
 static int active_seg_prefix;
 #define MAX_CODE_LENGTH 15
 /* We can up to 14 prefixes since the maximum instruction length is
    15bytes.  */
 static int all_prefixes[MAX_CODE_LENGTH - 1];
-//~ static disassemble_info *the_info;
+static struct disassemble_info *the_info;
 static struct
   {
     int mod;
@@ -11339,6 +11397,14 @@ oappend (const char *s)
 {
   obufp = stpcpy (obufp, s);
 }
+static void
+swap_operand (void)
+{
+  mnemonicendp[0] = '.';
+  mnemonicendp[1] = 's';
+  mnemonicendp += 2;
+}
+
  static void
 append_seg (void)
 {
@@ -12368,9 +12434,9 @@ OP_sI (int bytemode, int sizeflag)
 static void
 OP_J (int bytemode, int sizeflag)
 {
-  bfd_vma disp;
-  bfd_vma mask = -1;
-  bfd_vma segment = 0;
+  unsigned long disp;
+  unsigned long mask = -1;
+  unsigned long segment = 0;
 
   switch (bytemode)
     {
@@ -12401,7 +12467,7 @@ OP_J (int bytemode, int sizeflag)
 	  mask = 0xffff;
 	  if ((prefixes & PREFIX_DATA) == 0)
 	    segment = ((start_pc + (codep - start_codep))
-		       & ~((bfd_vma) 0xffff));
+		       & ~((unsigned long) 0xffff));
 	}
       if (address_mode != mode_64bit
 	  || (isa64 != intel64 && !(rex & REX_W)))
@@ -12450,7 +12516,7 @@ OP_DIR (int dummy  __attribute__((unused)), int sizeflag)
 static void
 OP_OFF (int bytemode, int sizeflag)
 {
-  bfd_vma off;
+  unsigned long off;
 
   if (intel_syntax && (sizeflag & SUFFIX_ALWAYS))
     intel_operand_size (bytemode, sizeflag);
@@ -12476,7 +12542,7 @@ OP_OFF (int bytemode, int sizeflag)
 static void
 OP_OFF64 (int bytemode, int sizeflag)
 {
-  bfd_vma off;
+  unsigned long off;
 
   if (address_mode != mode_64bit
       || (prefixes & PREFIX_ADDR))
@@ -12628,7 +12694,83 @@ OP_R (int bytemode, int sizeflag)
   codep++;
   OP_E_register (bytemode, sizeflag);
 }
-
+static const char *const Suffix3DNow[] = {
+/* 00 */	NULL,		NULL,		NULL,		NULL,
+/* 04 */	NULL,		NULL,		NULL,		NULL,
+/* 08 */	NULL,		NULL,		NULL,		NULL,
+/* 0C */	"pi2fw",	"pi2fd",	NULL,		NULL,
+/* 10 */	NULL,		NULL,		NULL,		NULL,
+/* 14 */	NULL,		NULL,		NULL,		NULL,
+/* 18 */	NULL,		NULL,		NULL,		NULL,
+/* 1C */	"pf2iw",	"pf2id",	NULL,		NULL,
+/* 20 */	NULL,		NULL,		NULL,		NULL,
+/* 24 */	NULL,		NULL,		NULL,		NULL,
+/* 28 */	NULL,		NULL,		NULL,		NULL,
+/* 2C */	NULL,		NULL,		NULL,		NULL,
+/* 30 */	NULL,		NULL,		NULL,		NULL,
+/* 34 */	NULL,		NULL,		NULL,		NULL,
+/* 38 */	NULL,		NULL,		NULL,		NULL,
+/* 3C */	NULL,		NULL,		NULL,		NULL,
+/* 40 */	NULL,		NULL,		NULL,		NULL,
+/* 44 */	NULL,		NULL,		NULL,		NULL,
+/* 48 */	NULL,		NULL,		NULL,		NULL,
+/* 4C */	NULL,		NULL,		NULL,		NULL,
+/* 50 */	NULL,		NULL,		NULL,		NULL,
+/* 54 */	NULL,		NULL,		NULL,		NULL,
+/* 58 */	NULL,		NULL,		NULL,		NULL,
+/* 5C */	NULL,		NULL,		NULL,		NULL,
+/* 60 */	NULL,		NULL,		NULL,		NULL,
+/* 64 */	NULL,		NULL,		NULL,		NULL,
+/* 68 */	NULL,		NULL,		NULL,		NULL,
+/* 6C */	NULL,		NULL,		NULL,		NULL,
+/* 70 */	NULL,		NULL,		NULL,		NULL,
+/* 74 */	NULL,		NULL,		NULL,		NULL,
+/* 78 */	NULL,		NULL,		NULL,		NULL,
+/* 7C */	NULL,		NULL,		NULL,		NULL,
+/* 80 */	NULL,		NULL,		NULL,		NULL,
+/* 84 */	NULL,		NULL,		NULL,		NULL,
+/* 88 */	NULL,		NULL,		"pfnacc",	NULL,
+/* 8C */	NULL,		NULL,		"pfpnacc",	NULL,
+/* 90 */	"pfcmpge",	NULL,		NULL,		NULL,
+/* 94 */	"pfmin",	NULL,		"pfrcp",	"pfrsqrt",
+/* 98 */	NULL,		NULL,		"pfsub",	NULL,
+/* 9C */	NULL,		NULL,		"pfadd",	NULL,
+/* A0 */	"pfcmpgt",	NULL,		NULL,		NULL,
+/* A4 */	"pfmax",	NULL,		"pfrcpit1",	"pfrsqit1",
+/* A8 */	NULL,		NULL,		"pfsubr",	NULL,
+/* AC */	NULL,		NULL,		"pfacc",	NULL,
+/* B0 */	"pfcmpeq",	NULL,		NULL,		NULL,
+/* B4 */	"pfmul",	NULL,		"pfrcpit2",	"pmulhrw",
+/* B8 */	NULL,		NULL,		NULL,		"pswapd",
+/* BC */	NULL,		NULL,		NULL,		"pavgusb",
+/* C0 */	NULL,		NULL,		NULL,		NULL,
+/* C4 */	NULL,		NULL,		NULL,		NULL,
+/* C8 */	NULL,		NULL,		NULL,		NULL,
+/* CC */	NULL,		NULL,		NULL,		NULL,
+/* D0 */	NULL,		NULL,		NULL,		NULL,
+/* D4 */	NULL,		NULL,		NULL,		NULL,
+/* D8 */	NULL,		NULL,		NULL,		NULL,
+/* DC */	NULL,		NULL,		NULL,		NULL,
+/* E0 */	NULL,		NULL,		NULL,		NULL,
+/* E4 */	NULL,		NULL,		NULL,		NULL,
+/* E8 */	NULL,		NULL,		NULL,		NULL,
+/* EC */	NULL,		NULL,		NULL,		NULL,
+/* F0 */	NULL,		NULL,		NULL,		NULL,
+/* F4 */	NULL,		NULL,		NULL,		NULL,
+/* F8 */	NULL,		NULL,		NULL,		NULL,
+/* FC */	NULL,		NULL,		NULL,		NULL,
+};
+static struct op simd_cmp_op[] =
+{
+  { STRING_COMMA_LEN ("eq") },
+  { STRING_COMMA_LEN ("lt") },
+  { STRING_COMMA_LEN ("le") },
+  { STRING_COMMA_LEN ("unord") },
+  { STRING_COMMA_LEN ("neq") },
+  { STRING_COMMA_LEN ("nlt") },
+  { STRING_COMMA_LEN ("nle") },
+  { STRING_COMMA_LEN ("ord") }
+};
 static void
 OP_MMX (int bytemode  __attribute__((unused)), int sizeflag  __attribute__((unused)))
 {
@@ -12873,7 +13015,59 @@ OP_EX (int bytemode, int sizeflag)
     names = names_xmm;
   oappend (names[reg]);
 }
-
+static struct op vex_cmp_op[] =
+{
+  { STRING_COMMA_LEN ("eq") },
+  { STRING_COMMA_LEN ("lt") },
+  { STRING_COMMA_LEN ("le") },
+  { STRING_COMMA_LEN ("unord") },
+  { STRING_COMMA_LEN ("neq") },
+  { STRING_COMMA_LEN ("nlt") },
+  { STRING_COMMA_LEN ("nle") },
+  { STRING_COMMA_LEN ("ord") },
+  { STRING_COMMA_LEN ("eq_uq") },
+  { STRING_COMMA_LEN ("nge") },
+  { STRING_COMMA_LEN ("ngt") },
+  { STRING_COMMA_LEN ("false") },
+  { STRING_COMMA_LEN ("neq_oq") },
+  { STRING_COMMA_LEN ("ge") },
+  { STRING_COMMA_LEN ("gt") },
+  { STRING_COMMA_LEN ("true") },
+  { STRING_COMMA_LEN ("eq_os") },
+  { STRING_COMMA_LEN ("lt_oq") },
+  { STRING_COMMA_LEN ("le_oq") },
+  { STRING_COMMA_LEN ("unord_s") },
+  { STRING_COMMA_LEN ("neq_us") },
+  { STRING_COMMA_LEN ("nlt_uq") },
+  { STRING_COMMA_LEN ("nle_uq") },
+  { STRING_COMMA_LEN ("ord_s") },
+  { STRING_COMMA_LEN ("eq_us") },
+  { STRING_COMMA_LEN ("nge_uq") },
+  { STRING_COMMA_LEN ("ngt_uq") },
+  { STRING_COMMA_LEN ("false_os") },
+  { STRING_COMMA_LEN ("neq_os") },
+  { STRING_COMMA_LEN ("ge_oq") },
+  { STRING_COMMA_LEN ("gt_oq") },
+  { STRING_COMMA_LEN ("true_us") },
+};
+static const struct op xop_cmp_op[] =
+{
+  { STRING_COMMA_LEN ("lt") },
+  { STRING_COMMA_LEN ("le") },
+  { STRING_COMMA_LEN ("gt") },
+  { STRING_COMMA_LEN ("ge") },
+  { STRING_COMMA_LEN ("eq") },
+  { STRING_COMMA_LEN ("neq") },
+  { STRING_COMMA_LEN ("false") },
+  { STRING_COMMA_LEN ("true") }
+};
+static const struct op pclmul_op[] =
+{
+  { STRING_COMMA_LEN ("lql") },
+  { STRING_COMMA_LEN ("hql") },
+  { STRING_COMMA_LEN ("lqh") },
+  { STRING_COMMA_LEN ("hqh") }
+};
 static void
 OP_MS (int bytemode, int sizeflag)
 {
@@ -14038,3 +14232,377 @@ OP_Rounding (int bytemode, int sizeflag  __attribute__((unused)))
       }
 }
 
+static void
+intel_operand_size (int bytemode, int sizeflag)
+{
+  if (vex.evex
+      && vex.b
+      && (bytemode == x_mode
+	  || bytemode == evex_half_bcst_xmmq_mode))
+    {
+      if (vex.w)
+	oappend ("QWORD PTR ");
+      else
+	oappend ("DWORD PTR ");
+      return;
+    }
+  switch (bytemode)
+    {
+    case b_mode:
+    case b_swap_mode:
+    case dqb_mode:
+    case db_mode:
+      oappend ("BYTE PTR ");
+      break;
+    case w_mode:
+    case dw_mode:
+    case dqw_mode:
+      oappend ("WORD PTR ");
+      break;
+    case indir_v_mode:
+      if (address_mode == mode_64bit && isa64 == intel64)
+	{
+	  oappend ("QWORD PTR ");
+	  break;
+	}
+      /* Fall through.  */
+    case stack_v_mode:
+      if (address_mode == mode_64bit && ((sizeflag & DFLAG) || (rex & REX_W)))
+	{
+	  oappend ("QWORD PTR ");
+	  break;
+	}
+      /* Fall through.  */
+    case v_mode:
+    case v_swap_mode:
+    case dq_mode:
+      USED_REX (REX_W);
+      if (rex & REX_W)
+	oappend ("QWORD PTR ");
+      else
+	{
+	  if ((sizeflag & DFLAG) || bytemode == dq_mode)
+	    oappend ("DWORD PTR ");
+	  else
+	    oappend ("WORD PTR ");
+	  used_prefixes |= (prefixes & PREFIX_DATA);
+	}
+      break;
+    case z_mode:
+      if ((rex & REX_W) || (sizeflag & DFLAG))
+	*obufp++ = 'D';
+      oappend ("WORD PTR ");
+      if (!(rex & REX_W))
+	used_prefixes |= (prefixes & PREFIX_DATA);
+      break;
+    case a_mode:
+      if (sizeflag & DFLAG)
+	oappend ("QWORD PTR ");
+      else
+	oappend ("DWORD PTR ");
+      used_prefixes |= (prefixes & PREFIX_DATA);
+      break;
+    case movsxd_mode:
+      if (!(sizeflag & DFLAG) && isa64 == intel64)
+	oappend ("WORD PTR ");
+      else
+	oappend ("DWORD PTR ");
+      used_prefixes |= (prefixes & PREFIX_DATA);
+      break;
+    case d_mode:
+    case d_scalar_mode:
+    case d_scalar_swap_mode:
+    case d_swap_mode:
+    case dqd_mode:
+      oappend ("DWORD PTR ");
+      break;
+    case q_mode:
+    case q_scalar_mode:
+    case q_scalar_swap_mode:
+    case q_swap_mode:
+      oappend ("QWORD PTR ");
+      break;
+    case m_mode:
+      if (address_mode == mode_64bit)
+	oappend ("QWORD PTR ");
+      else
+	oappend ("DWORD PTR ");
+      break;
+    case f_mode:
+      if (sizeflag & DFLAG)
+	oappend ("FWORD PTR ");
+      else
+	oappend ("DWORD PTR ");
+      used_prefixes |= (prefixes & PREFIX_DATA);
+      break;
+    case t_mode:
+      oappend ("TBYTE PTR ");
+      break;
+    case x_mode:
+    case x_swap_mode:
+    case evex_x_gscat_mode:
+    case evex_x_nobcst_mode:
+    case b_scalar_mode:
+    case w_scalar_mode:
+      if (need_vex)
+	{
+	  switch (vex.length)
+	    {
+	    case 128:
+	      oappend ("XMMWORD PTR ");
+	      break;
+	    case 256:
+	      oappend ("YMMWORD PTR ");
+	      break;
+	    case 512:
+	      oappend ("ZMMWORD PTR ");
+	      break;
+	    default:
+	      abort ();
+	    }
+	}
+      else
+	oappend ("XMMWORD PTR ");
+      break;
+    case xmm_mode:
+      oappend ("XMMWORD PTR ");
+      break;
+    case ymm_mode:
+      oappend ("YMMWORD PTR ");
+      break;
+    case xmmq_mode:
+    case evex_half_bcst_xmmq_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	  oappend ("QWORD PTR ");
+	  break;
+	case 256:
+	  oappend ("XMMWORD PTR ");
+	  break;
+	case 512:
+	  oappend ("YMMWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case xmm_mb_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	case 256:
+	case 512:
+	  oappend ("BYTE PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case xmm_mw_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	case 256:
+	case 512:
+	  oappend ("WORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case xmm_md_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	case 256:
+	case 512:
+	  oappend ("DWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case xmm_mq_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	case 256:
+	case 512:
+	  oappend ("QWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case xmmdw_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	  oappend ("WORD PTR ");
+	  break;
+	case 256:
+	  oappend ("DWORD PTR ");
+	  break;
+	case 512:
+	  oappend ("QWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case xmmqd_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	  oappend ("DWORD PTR ");
+	  break;
+	case 256:
+	  oappend ("QWORD PTR ");
+	  break;
+	case 512:
+	  oappend ("XMMWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case ymmq_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	  oappend ("QWORD PTR ");
+	  break;
+	case 256:
+	  oappend ("YMMWORD PTR ");
+	  break;
+	case 512:
+	  oappend ("ZMMWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case ymmxmm_mode:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	case 256:
+	  oappend ("XMMWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+      break;
+    case o_mode:
+      oappend ("OWORD PTR ");
+      break;
+    case vex_scalar_w_dq_mode:
+      if (!need_vex)
+	abort ();
+
+      if (vex.w)
+	oappend ("QWORD PTR ");
+      else
+	oappend ("DWORD PTR ");
+      break;
+    case vex_vsib_d_w_dq_mode:
+    case vex_vsib_q_w_dq_mode:
+      if (!need_vex)
+	abort ();
+
+      if (!vex.evex)
+	{
+	  if (vex.w)
+	    oappend ("QWORD PTR ");
+	  else
+	    oappend ("DWORD PTR ");
+	}
+      else
+	{
+	  switch (vex.length)
+	    {
+	    case 128:
+	      oappend ("XMMWORD PTR ");
+	      break;
+	    case 256:
+	      oappend ("YMMWORD PTR ");
+	      break;
+	    case 512:
+	      oappend ("ZMMWORD PTR ");
+	      break;
+	    default:
+	      abort ();
+	    }
+	}
+      break;
+    case vex_vsib_q_w_d_mode:
+    case vex_vsib_d_w_d_mode:
+      if (!need_vex || !vex.evex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	  oappend ("QWORD PTR ");
+	  break;
+	case 256:
+	  oappend ("XMMWORD PTR ");
+	  break;
+	case 512:
+	  oappend ("YMMWORD PTR ");
+	  break;
+	default:
+	  abort ();
+	}
+
+      break;
+    case mask_bd_mode:
+      if (!need_vex || vex.length != 128)
+	abort ();
+      if (vex.w)
+	oappend ("DWORD PTR ");
+      else
+	oappend ("BYTE PTR ");
+      break;
+    case mask_mode:
+      if (!need_vex)
+	abort ();
+      if (vex.w)
+	oappend ("QWORD PTR ");
+      else
+	oappend ("WORD PTR ");
+      break;
+    case v_bnd_mode:
+    case v_bndmk_mode:
+    default:
+      break;
+    }
+}
