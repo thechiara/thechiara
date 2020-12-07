@@ -1,5 +1,6 @@
 // copyright 
 #include <chiaracore.h>
+#include <chiaracompute.h>
 #include "i386-opc.h"
 #include "i386-tbl.h"
 #include <stdio.h>
@@ -107,7 +108,7 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 
 
 static int
-fetch_data (struct disassemble_info *info, unsigned char *addr)
+FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 {
 	// instruction_pointer 
 	if(addr >= end_codep) {
@@ -11372,7 +11373,172 @@ static char *fgrps[][8] = {
     "fNstsw","(bad)","(bad)","(bad)","(bad)","(bad)","(bad)","(bad)",
   },
 };
+static bfd_signed_vma
+get32s (void)
+{
+  bfd_signed_vma x = 0;
 
+  FETCH_DATA (the_info, codep + 4);
+  x = *codep++ & (bfd_signed_vma) 0xff;
+  x |= (*codep++ & (bfd_signed_vma) 0xff) << 8;
+  x |= (*codep++ & (bfd_signed_vma) 0xff) << 16;
+  x |= (*codep++ & (bfd_signed_vma) 0xff) << 24;
+
+  x = (x ^ ((bfd_signed_vma) 1 << 31)) - ((bfd_signed_vma) 1 << 31);
+
+  return x;
+}
+static bfd_signed_vma
+get32 (void)
+{
+  bfd_signed_vma x = 0;
+
+  FETCH_DATA (the_info, codep + 4);
+  x = *codep++ & (bfd_signed_vma) 0xff;
+  x |= (*codep++ & (bfd_signed_vma) 0xff) << 8;
+  x |= (*codep++ & (bfd_signed_vma) 0xff) << 16;
+  x |= (*codep++ & (bfd_signed_vma) 0xff) << 24;
+  return x;
+}
+static void
+set_op (unsigned long op, int riprel)
+{
+  op_index[op_ad] = op_ad;
+  if (address_mode == mode_64bit)
+    {
+      op_address[op_ad] = op;
+      op_riprel[op_ad] = riprel;
+    }
+  else
+    {
+      /* Mask to get a 32-bit address.  */
+      op_address[op_ad] = op & 0xffffffff;
+      op_riprel[op_ad] = riprel & 0xffffffff;
+    }
+}
+static void
+print_displacement (char *buf, unsigned long disp)
+{
+  bfd_signed_vma val = disp;
+  char tmp[30];
+  int i, j = 0;
+
+  if (val < 0)
+    {
+      buf[j++] = '-';
+      val = -disp;
+
+      /* Check for possible overflow.  */
+      if (val < 0)
+	{
+	  switch (address_mode)
+	    {
+	    case mode_64bit:
+	      strcpy (buf + j, "0x8000000000000000");
+	      break;
+	    case mode_32bit:
+	      strcpy (buf + j, "0x80000000");
+	      break;
+	    case mode_16bit:
+	      strcpy (buf + j, "0x8000");
+	      break;
+	    }
+	  return;
+	}
+    }
+
+  buf[j++] = '0';
+  buf[j++] = 'x';
+
+  printf (tmp, (unsigned long) val);
+  for (i = 0; tmp[i] == '0'; i++)
+    continue;
+  if (tmp[i] == '\0')
+    i--;
+  strcpy (buf + j, tmp + i);
+}
+
+static void
+print_operand_value (char *buf, int hex, unsigned long disp)
+{
+  if (address_mode == mode_64bit)
+    {
+      if (hex)
+	{
+	  char tmp[30];
+	  int i;
+	  buf[0] = '0';
+	  buf[1] = 'x';
+	  printf (tmp, disp);
+	  for (i = 0; tmp[i] == '0' && tmp[i + 1]; i++);
+	  strcpy (buf + 2, tmp + i);
+	}
+      else
+	{
+	  bfd_signed_vma v = disp;
+	  char tmp[30];
+	  int i;
+	  if (v < 0)
+	    {
+	      *(buf++) = '-';
+	      v = -disp;
+	      /* Check for possible overflow on 0x8000000000000000.  */
+	      if (v < 0)
+		{
+		  strcpy (buf, "9223372036854775808");
+		  return;
+		}
+	    }
+	  if (!v)
+	    {
+	      strcpy (buf, "0");
+	      return;
+	    }
+
+	  i = 0;
+	  tmp[29] = 0;
+	  while (v)
+	    {
+	      tmp[28 - i] = (v % 10) + '0';
+	      v /= 10;
+	      i++;
+	    }
+	  strcpy (buf, tmp + 29 - i);
+	}
+    }
+  else
+    {
+      if (hex)
+	sprintf (buf, "0x%x", (unsigned int) disp);
+      else
+	sprintf (buf, "%d", (int) disp);
+    }
+}
+
+static unsigned long 
+get64 (void)
+{
+  unsigned long x;
+#ifdef BFD64
+  unsigned int a;
+  unsigned int b;
+
+  FETCH_DATA (the_info, codep + 8);
+  a = *codep++ & 0xff;
+  a |= (*codep++ & 0xff) << 8;
+  a |= (*codep++ & 0xff) << 16;
+  a |= (*codep++ & 0xffu) << 24;
+  b = *codep++ & 0xff;
+  b |= (*codep++ & 0xff) << 8;
+  b |= (*codep++ & 0xff) << 16;
+  b |= (*codep++ & 0xffu) << 24;
+  x = a + ((bfd_vma) b << 32);
+#else
+  abort ();
+  x = 0;
+#endif
+  return x;
+}
 static void
 oappend_maybe_intel (const char *s)
 {

@@ -51,3 +51,4 @@ void chiara_emul_bigendian_ppc(unsigned char *instruction,int size) ;
 void chiara_emul_littleendian_ppc(unsigned char *instruction,int size);
 
 void chiara_dos_header_look(unsigned char *file,unsigned long size);
+#define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
