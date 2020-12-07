@@ -79,12 +79,14 @@ enum x86_64_isa
 static enum x86_64_isa isa64;
 
 
+
 void chiara_emul_x86(unsigned char *instruction,int size) {
 	start_codep = instruction;
 	end_codep = instruction+size;
 	codep = instruction;
 	index_instruction = 0;
 	start_pc = 0; // 
+	
 	long statusarray=0;
 	for(;statusarray<size;statusarray++,index_instruction++,codep++) {
 		struct insn_template * tmp  = chiara_lookup_opcode(instruction[statusarray]) ;
@@ -2275,6 +2277,8 @@ struct dis386 {
       int bytemode;
     } op[MAX_OPERANDS];
   unsigned int prefix_requirement;
+   unsigned char gpraction; // assign macro contained in chiaracore.h
+  void (*to_chiara_gpr) (unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);
 };
 
 
@@ -2419,23 +2423,23 @@ static const struct dis386 dis386[] = {
   { Bad_Opcode },	/* SEG DS prefix */
   { X86_64_TABLE (X86_64_3F) },
   /* 40 */
-  { "inc{S|}",		{ RMeAX }, 0 },
-  { "inc{S|}",		{ RMeCX }, 0 },
-  { "inc{S|}",		{ RMeDX }, 0 },
-  { "inc{S|}",		{ RMeBX }, 0 },
-  { "inc{S|}",		{ RMeSP }, 0 },
-  { "inc{S|}",		{ RMeBP }, 0 },
-  { "inc{S|}",		{ RMeSI }, 0 },
-  { "inc{S|}",		{ RMeDI }, 0 },
+  { "inc{S|}",		{ RMeAX }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC},
+  { "inc{S|}",		{ RMeCX }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC },
+  { "inc{S|}",		{ RMeDX }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC},
+  { "inc{S|}",		{ RMeBX }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC},
+  { "inc{S|}",		{ RMeSP }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC},
+  { "inc{S|}",		{ RMeBP }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC },
+  { "inc{S|}",		{ RMeSI }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC},
+  { "inc{S|}",		{ RMeDI }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_INC},
   /* 48 */
-  { "dec{S|}",		{ RMeAX }, 0 },
-  { "dec{S|}",		{ RMeCX }, 0 },
-  { "dec{S|}",		{ RMeDX }, 0 },
-  { "dec{S|}",		{ RMeBX }, 0 },
-  { "dec{S|}",		{ RMeSP }, 0 },
-  { "dec{S|}",		{ RMeBP }, 0 },
-  { "dec{S|}",		{ RMeSI }, 0 },
-  { "dec{S|}",		{ RMeDI }, 0 },
+  { "dec{S|}",		{ RMeAX }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC },
+  { "dec{S|}",		{ RMeCX }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC },
+  { "dec{S|}",		{ RMeDX }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC  },
+  { "dec{S|}",		{ RMeBX }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC },
+  { "dec{S|}",		{ RMeSP }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC  },
+  { "dec{S|}",		{ RMeBP }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC },
+  { "dec{S|}",		{ RMeSI }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC },
+  { "dec{S|}",		{ RMeDI }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DEC  },
   /* 50 */
   { "pushV",		{ RMrAX }, 0 },
   { "pushV",		{ RMrCX }, 0 },
@@ -2545,23 +2549,23 @@ static const struct dis386 dis386[] = {
   { "scasB",		{ AL, Yb }, 0 },
   { "scasS",		{ eAX, Yv }, 0 },
   /* b0 */
-  { "movB",		{ RMAL, Ib }, 0 },
-  { "movB",		{ RMCL, Ib }, 0 },
-  { "movB",		{ RMDL, Ib }, 0 },
-  { "movB",		{ RMBL, Ib }, 0 },
-  { "movB",		{ RMAH, Ib }, 0 },
-  { "movB",		{ RMCH, Ib }, 0 },
-  { "movB",		{ RMDH, Ib }, 0 },
-  { "movB",		{ RMBH, Ib }, 0 },
+  { "movB",		{ RMAL, Ib }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "movB",		{ RMCL, Ib }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG  },
+  { "movB",		{ RMDL, Ib }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "movB",		{ RMBL, Ib }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "movB",		{ RMAH, Ib }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG  },
+  { "movB",		{ RMCH, Ib }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG  },
+  { "movB",		{ RMDH, Ib }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "movB",		{ RMBH, Ib }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
   /* b8 */
-  { "mov%LV",		{ RMeAX, Iv64 }, 0 },
-  { "mov%LV",		{ RMeCX, Iv64 }, 0 },
-  { "mov%LV",		{ RMeDX, Iv64 }, 0 },
-  { "mov%LV",		{ RMeBX, Iv64 }, 0 },
-  { "mov%LV",		{ RMeSP, Iv64 }, 0 },
-  { "mov%LV",		{ RMeBP, Iv64 }, 0 },
-  { "mov%LV",		{ RMeSI, Iv64 }, 0 },
-  { "mov%LV",		{ RMeDI, Iv64 }, 0 },
+  { "mov%LV",		{ RMeAX, Iv64 }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "mov%LV",		{ RMeCX, Iv64 }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG  },
+  { "mov%LV",		{ RMeDX, Iv64 }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG  },
+  { "mov%LV",		{ RMeBX, Iv64 }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "mov%LV",		{ RMeSP, Iv64 }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "mov%LV",		{ RMeBP, Iv64 }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
+  { "mov%LV",		{ RMeSI, Iv64 }, 0,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG  },
+  { "mov%LV",		{ RMeDI, Iv64 }, 0 ,.to_chiara_gpr=chiara_action_reg,.gpraction=ACTION_DISP_REG },
   /* c0 */
   { REG_TABLE (REG_C0) },
   { REG_TABLE (REG_C1) },
@@ -14771,4 +14775,385 @@ intel_operand_size (int bytemode, int sizeflag)
     default:
       break;
     }
+}
+static int
+print_insn (unsigned long pc, disassemble_info *info)
+{
+  const struct dis386 *dp;
+  int i;
+  char *op_txt[MAX_OPERANDS];
+  int needcomma;
+  int sizeflag, orig_sizeflag;
+  const char *p;
+  struct dis_private priv;
+  int prefix_length;
+
+
+      names64 = intel_names64;
+      names32 = intel_names32;
+      names16 = intel_names16;
+      names8 = intel_names8;
+      names8rex = intel_names8rex;
+      names_seg = intel_names_seg;
+      names_mm = intel_names_mm;
+      names_bnd = intel_names_bnd;
+      names_xmm = intel_names_xmm;
+      names_ymm = intel_names_ymm;
+      names_zmm = intel_names_zmm;
+      index64 = intel_index64;
+      index32 = intel_index32;
+      names_mask = intel_names_mask;
+      index16 = intel_index16;
+      open_char = '[';
+      close_char = ']';
+      separator_char = '+';
+      scale_char = '*';
+
+  /* The output looks better if we put 7 bytes on a line, since that
+     puts most long word instructions on a single line.  Use 8 bytes
+     for Intel L1OM.  */
+  if ((info->mach & bfd_mach_l1om) != 0)
+    info->bytes_per_line = 8;
+  else
+    info->bytes_per_line = 7;
+
+  info->private_data = &priv;
+  priv.max_fetched = priv.the_buffer;
+  priv.insn_start = pc;
+
+  obuf[0] = 0;
+  for (i = 0; i < MAX_OPERANDS; ++i)
+    {
+      op_out[i][0] = 0;
+      op_index[i] = -1;
+    }
+
+  the_info = info;
+  start_pc = pc;
+  start_codep = priv.the_buffer;
+  codep = priv.the_buffer;
+
+  if (OPCODES_SIGSETJMP (priv.bailout) != 0)
+    {
+      const char *name;
+
+      /* Getting here means we tried for data but didn't get it.  That
+	 means we have an incomplete instruction of some sort.  Just
+	 print the first byte as a prefix or a .byte pseudo-op.  */
+      if (codep > priv.the_buffer)
+	{
+	  name = prefix_name (priv.the_buffer[0], priv.orig_sizeflag);
+	  if (name != NULL)
+	    (*info->fprintf_func) (info->stream, "%s", name);
+	  else
+	    {
+	      /* Just print the first byte as a .byte instruction.  */
+	      (*info->fprintf_func) (info->stream, ".byte 0x%x",
+				     (unsigned int) priv.the_buffer[0]);
+	    }
+
+	  return 1;
+	}
+
+      return -1;
+    }
+
+  obufp = obuf;
+  sizeflag = priv.orig_sizeflag;
+
+  if (!ckprefix () || rex_used)
+    {
+      /* Too many prefixes or unused REX prefixes.  */
+      for (i = 0;
+	   i < (int) ARRAY_SIZE (all_prefixes) && all_prefixes[i];
+	   i++)
+	(*info->fprintf_func) (info->stream, "%s%s",
+			       i == 0 ? "" : " ",
+			       prefix_name (all_prefixes[i], sizeflag));
+      return i;
+    }
+
+  insn_codep = codep;
+
+  FETCH_DATA (info, codep + 1);
+  two_source_ops = (*codep == 0x62) || (*codep == 0xc8);
+
+  if (((prefixes & PREFIX_FWAIT)
+       && ((*codep < 0xd8) || (*codep > 0xdf))))
+    {
+      /* Handle prefixes before fwait.  */
+      for (i = 0; i < fwait_prefix && all_prefixes[i];
+	   i++)
+	(*info->fprintf_func) (info->stream, "%s ",
+			       prefix_name (all_prefixes[i], sizeflag));
+      (*info->fprintf_func) (info->stream, "fwait");
+      return i + 1;
+    }
+
+  if (*codep == 0x0f)
+    {
+      unsigned char threebyte;
+
+      codep++;
+      FETCH_DATA (info, codep + 1);
+      threebyte = *codep;
+      dp = &dis386_twobyte[threebyte];
+      need_modrm = twobyte_has_modrm[*codep];
+      codep++;
+    }
+  else
+    {
+      dp = &dis386[*codep];
+      need_modrm = onebyte_has_modrm[*codep];
+      codep++;
+    }
+
+  /* Save sizeflag for printing the extra prefixes later before updating
+     it for mnemonic and operand processing.  The prefix names depend
+     only on the address mode.  */
+  orig_sizeflag = sizeflag;
+  if (prefixes & PREFIX_ADDR)
+    sizeflag ^= AFLAG;
+  if ((prefixes & PREFIX_DATA))
+    sizeflag ^= DFLAG;
+
+  end_codep = codep;
+  if (need_modrm)
+    {
+      FETCH_DATA (info, codep + 1);
+      modrm.mod = (*codep >> 6) & 3;
+      modrm.reg = (*codep >> 3) & 7;
+      modrm.rm = *codep & 7;
+    }
+
+  need_vex = 0;
+  need_vex_reg = 0;
+  vex_w_done = 0;
+  memset (&vex, 0, sizeof (vex));
+
+  if (dp->name == NULL && dp->op[0].bytemode == FLOATCODE)
+    {
+      get_sib (info, sizeflag);
+      dofloat (sizeflag);
+    }
+  else
+    {
+      dp = get_valid_dis386 (dp, info);
+      if (dp != NULL && putop (dp->name, sizeflag) == 0)
+	{
+	  get_sib (info, sizeflag);
+	  for (i = 0; i < MAX_OPERANDS; ++i)
+	    {
+	      obufp = op_out[i];
+	      op_ad = MAX_OPERANDS - 1 - i;
+	      if (dp->op[i].rtn)
+		(*dp->op[i].rtn) (dp->op[i].bytemode, sizeflag);
+	      /* For EVEX instruction after the last operand masking
+		 should be printed.  */
+	      if (i == 0 && vex.evex)
+		{
+		  /* Don't print {%k0}.  */
+		  if (vex.mask_register_specifier)
+		    {
+		      oappend ("{");
+		      oappend (names_mask[vex.mask_register_specifier]);
+		      oappend ("}");
+		    }
+		  if (vex.zeroing)
+		    oappend ("{z}");
+		}
+	    }
+	}
+    }
+
+  /* Clear instruction information.  */
+  if (the_info)
+    {
+      the_info->insn_info_valid = 0;
+      the_info->branch_delay_insns = 0;
+      the_info->data_size = 0;
+      the_info->insn_type = dis_noninsn;
+      the_info->target = 0;
+      the_info->target2 = 0;
+    }
+
+  /* Reset jump operation indicator.  */
+  op_is_jump = FALSE;
+
+  {
+    int jump_detection = 0;
+
+    /* Extract flags.  */
+    for (i = 0; i < MAX_OPERANDS; ++i)
+      {
+	if ((dp->op[i].rtn == OP_J)
+	    || (dp->op[i].rtn == OP_indirE))
+	  jump_detection |= 1;
+	else if ((dp->op[i].rtn == BND_Fixup)
+		 || (!dp->op[i].rtn && !dp->op[i].bytemode))
+	  jump_detection |= 2;
+	else if ((dp->op[i].bytemode == cond_jump_mode)
+		 || (dp->op[i].bytemode == loop_jcxz_mode))
+	  jump_detection |= 4;
+      }
+
+    /* Determine if this is a jump or branch.  */
+    if ((jump_detection & 0x3) == 0x3)
+      {
+	op_is_jump = TRUE;
+	if (jump_detection & 0x4)
+	  the_info->insn_type = dis_condbranch;
+	else
+	  the_info->insn_type =
+	    (dp->name && !strncmp(dp->name, "call", 4))
+	    ? dis_jsr : dis_branch;
+      }
+  }
+
+  /* If VEX.vvvv and EVEX.vvvv are unused, they must be all 1s, which
+     are all 0s in inverted form.  */
+  if (need_vex && vex.register_specifier != 0)
+    {
+      (*info->fprintf_func) (info->stream, "(bad)");
+      return end_codep - priv.the_buffer;
+    }
+
+  /* Check if the REX prefix is used.  */
+  if ((rex ^ rex_used) == 0 && !need_vex && last_rex_prefix >= 0)
+    all_prefixes[last_rex_prefix] = 0;
+
+  /* Check if the SEG prefix is used.  */
+  if ((prefixes & (PREFIX_CS | PREFIX_SS | PREFIX_DS | PREFIX_ES
+		   | PREFIX_FS | PREFIX_GS)) != 0
+      && (used_prefixes & active_seg_prefix) != 0)
+    all_prefixes[last_seg_prefix] = 0;
+
+  /* Check if the ADDR prefix is used.  */
+  if ((prefixes & PREFIX_ADDR) != 0
+      && (used_prefixes & PREFIX_ADDR) != 0)
+    all_prefixes[last_addr_prefix] = 0;
+
+  /* Check if the DATA prefix is used.  */
+  if ((prefixes & PREFIX_DATA) != 0
+      && (used_prefixes & PREFIX_DATA) != 0
+      && !need_vex)
+    all_prefixes[last_data_prefix] = 0;
+
+  /* Print the extra prefixes.  */
+  prefix_length = 0;
+  for (i = 0; i < (int) ARRAY_SIZE (all_prefixes); i++)
+    if (all_prefixes[i])
+      {
+	const char *name;
+	name = prefix_name (all_prefixes[i], orig_sizeflag);
+	if (name == NULL)
+	  abort ();
+	prefix_length += strlen (name) + 1;
+	(*info->fprintf_func) (info->stream, "%s ", name);
+      }
+
+  /* If the mandatory PREFIX_REPZ/PREFIX_REPNZ/PREFIX_DATA prefix is
+     unused, opcode is invalid.  Since the PREFIX_DATA prefix may be
+     used by putop and MMX/SSE operand and may be overriden by the
+     PREFIX_REPZ/PREFIX_REPNZ fix, we check the PREFIX_DATA prefix
+     separately.  */
+  if (dp->prefix_requirement == PREFIX_OPCODE
+      && (((need_vex
+	    ? vex.prefix == REPE_PREFIX_OPCODE
+	      || vex.prefix == REPNE_PREFIX_OPCODE
+	    : (prefixes
+	       & (PREFIX_REPZ | PREFIX_REPNZ)) != 0)
+	   && (used_prefixes
+	       & (PREFIX_REPZ | PREFIX_REPNZ)) == 0)
+	  || (((need_vex
+		? vex.prefix == DATA_PREFIX_OPCODE
+		: ((prefixes
+		    & (PREFIX_REPZ | PREFIX_REPNZ | PREFIX_DATA))
+		   == PREFIX_DATA))
+	       && (used_prefixes & PREFIX_DATA) == 0))
+	  || (vex.evex && !vex.w != !(used_prefixes & PREFIX_DATA))))
+    {
+      (*info->fprintf_func) (info->stream, "(bad)");
+      return end_codep - priv.the_buffer;
+    }
+
+  /* Check maximum code length.  */
+  if ((codep - start_codep) > MAX_CODE_LENGTH)
+    {
+      (*info->fprintf_func) (info->stream, "(bad)");
+      return MAX_CODE_LENGTH;
+    }
+
+  obufp = mnemonicendp;
+  for (i = strlen (obuf) + prefix_length; i < 6; i++)
+    oappend (" ");
+  oappend (" ");
+  (*info->fprintf_func) (info->stream, "%s", obuf);
+
+  /* The enter and bound instructions are printed with operands in the same
+     order as the intel book; everything else is printed in reverse order.  */
+  if (intel_syntax || two_source_ops)
+    {
+      bfd_vma riprel;
+
+      for (i = 0; i < MAX_OPERANDS; ++i)
+	op_txt[i] = op_out[i];
+
+      if (intel_syntax && dp && dp->op[2].rtn == OP_Rounding
+          && dp->op[3].rtn == OP_E && dp->op[4].rtn == NULL)
+	{
+	  op_txt[2] = op_out[3];
+	  op_txt[3] = op_out[2];
+	}
+
+      for (i = 0; i < (MAX_OPERANDS >> 1); ++i)
+	{
+	  op_ad = op_index[i];
+	  op_index[i] = op_index[MAX_OPERANDS - 1 - i];
+	  op_index[MAX_OPERANDS - 1 - i] = op_ad;
+	  riprel = op_riprel[i];
+	  op_riprel[i] = op_riprel [MAX_OPERANDS - 1 - i];
+	  op_riprel[MAX_OPERANDS - 1 - i] = riprel;
+	}
+    }
+  else
+    {
+      for (i = 0; i < MAX_OPERANDS; ++i)
+	op_txt[MAX_OPERANDS - 1 - i] = op_out[i];
+    }
+
+  needcomma = 0;
+  for (i = 0; i < MAX_OPERANDS; ++i)
+    if (*op_txt[i])
+      {
+	if (needcomma)
+	  (*info->fprintf_func) (info->stream, ",");
+	if (op_index[i] != -1 && !op_riprel[i])
+	  {
+	    bfd_vma target = (bfd_vma) op_address[op_index[i]];
+
+	    if (the_info && op_is_jump)
+	      {
+		the_info->insn_info_valid = 1;
+		the_info->branch_delay_insns = 0;
+		the_info->data_size = 0;
+		the_info->target = target;
+		the_info->target2 = 0;
+	      }
+	    (*info->print_address_func) (target, info);
+	  }
+	else
+	  (*info->fprintf_func) (info->stream, "%s", op_txt[i]);
+	needcomma = 1;
+      }
+
+  for (i = 0; i < MAX_OPERANDS; i++)
+    if (op_index[i] != -1 && op_riprel[i])
+      {
+	(*info->fprintf_func) (info->stream, "        # ");
+	(*info->print_address_func) ((bfd_vma) (start_pc + (codep - start_codep)
+						+ op_address[op_index[i]]), info);
+	break;
+      }
+  return codep - priv.the_buffer;
 }
