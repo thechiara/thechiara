@@ -4,6 +4,7 @@
 #include "i386-opc.h"
 #include "i386-tbl.h"
 #include <stdio.h>
+#include <string.h>
 #include "opcode/i386.h"
 /* Segment stuff.  */
 const seg_entry cs = { "cs", 0x2e };
@@ -2268,6 +2269,7 @@ enum
 };
 
 typedef void (*op_rtn) (int bytemode, int sizeflag);
+static int op_is_jump = 0;
 
 struct dis386 {
   const char *name;
@@ -2280,6 +2282,7 @@ struct dis386 {
    unsigned char gpraction; // assign macro contained in chiaracore.h
   void (*to_chiara_gpr) (unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);
 };
+static const struct dis386 bad_opcode = { "(bad)", { XX }, 0 };
 
 
 /* Upper case letters in the instruction names here are macros.
@@ -11548,6 +11551,503 @@ oappend_maybe_intel (const char *s)
 {
   oappend (s);
 }
+static void
+get_sib (void  *info, int sizeflag)
+{
+  /* If modrm.mod == 3, operand must be register.  */
+  if (need_modrm
+      && ((sizeflag & AFLAG) || address_mode == mode_64bit)
+      && modrm.mod != 3
+      && modrm.rm == 4)
+    {
+      FETCH_DATA (info, codep + 2);
+      sib.index = (codep [1] >> 3) & 7;
+      sib.scale = (codep [1] >> 6) & 3;
+      sib.base = codep [1] & 7;
+    }
+}
+static void
+dofloat (int sizeflag)
+{
+  const struct dis386 *dp;
+  unsigned char floatop;
+
+  floatop = codep[-1];
+
+  if (modrm.mod != 3)
+    {
+      int fp_indx = (floatop - 0xd8) * 8 + modrm.reg;
+
+      putop (float_mem[fp_indx], sizeflag);
+      obufp = op_out[0];
+      op_ad = 2;
+      OP_E (float_mem_mode[fp_indx], sizeflag);
+      return;
+    }
+  /* Skip mod/rm byte.  */
+  MODRM_CHECK;
+  codep++;
+
+  dp = &float_reg[floatop - 0xd8][modrm.reg];
+  if (dp->name == NULL)
+    {
+      putop (fgrps[dp->op[0].bytemode][modrm.rm], sizeflag);
+
+      /* Instruction fnstsw is only one with strange arg.  */
+      if (floatop == 0xdf && codep[-1] == 0xe0)
+	strcpy (op_out[0], names16[0]);
+    }
+  else
+    {
+      putop (dp->name, sizeflag);
+
+      obufp = op_out[0];
+      op_ad = 2;
+      if (dp->op[0].rtn)
+	(*dp->op[0].rtn) (dp->op[0].bytemode, sizeflag);
+
+      obufp = op_out[1];
+      op_ad = 1;
+      if (dp->op[1].rtn)
+	(*dp->op[1].rtn) (dp->op[1].bytemode, sizeflag);
+    }
+}
+static const struct dis386 *
+get_valid_dis386 (const struct dis386 *dp, void *info)
+{
+  int vindex, vex_table_index;
+
+  if (dp->name != NULL)
+    return dp;
+
+  switch (dp->op[0].bytemode)
+    {
+    case USE_REG_TABLE:
+      dp = &reg_table[dp->op[1].bytemode][modrm.reg];
+      break;
+
+    case USE_MOD_TABLE:
+      vindex = modrm.mod == 0x3 ? 1 : 0;
+      dp = &mod_table[dp->op[1].bytemode][vindex];
+      break;
+
+    case USE_RM_TABLE:
+      dp = &rm_table[dp->op[1].bytemode][modrm.rm];
+      break;
+
+    case USE_PREFIX_TABLE:
+      if (need_vex)
+	{
+	  /* The prefix in VEX is implicit.  */
+	  switch (vex.prefix)
+	    {
+	    case 0:
+	      vindex = 0;
+	      break;
+	    case REPE_PREFIX_OPCODE:
+	      vindex = 1;
+	      break;
+	    case DATA_PREFIX_OPCODE:
+	      vindex = 2;
+	      break;
+	    case REPNE_PREFIX_OPCODE:
+	      vindex = 3;
+	      break;
+	    default:
+	      abort ();
+	      break;
+	    }
+	}
+      else
+	{
+	  int last_prefix = -1;
+	  int prefix = 0;
+	  vindex = 0;
+	  /* We check PREFIX_REPNZ and PREFIX_REPZ before PREFIX_DATA.
+	     When there are multiple PREFIX_REPNZ and PREFIX_REPZ, the
+	     last one wins.  */
+	  if ((prefixes & (PREFIX_REPZ | PREFIX_REPNZ)) != 0)
+	    {
+	      if (last_repz_prefix > last_repnz_prefix)
+		{
+		  vindex = 1;
+		  prefix = PREFIX_REPZ;
+		  last_prefix = last_repz_prefix;
+		}
+	      else
+		{
+		  vindex = 3;
+		  prefix = PREFIX_REPNZ;
+		  last_prefix = last_repnz_prefix;
+		}
+
+	      /* Check if prefix should be ignored.  */
+	      if ((((prefix_table[dp->op[1].bytemode][vindex].prefix_requirement
+		     & PREFIX_IGNORED) >> PREFIX_IGNORED_SHIFT)
+		   & prefix) != 0)
+		vindex = 0;
+	    }
+
+	  if (vindex == 0 && (prefixes & PREFIX_DATA) != 0)
+	    {
+	      vindex = 2;
+	      prefix = PREFIX_DATA;
+	      last_prefix = last_data_prefix;
+	    }
+
+	  if (vindex != 0)
+	    {
+	      used_prefixes |= prefix;
+	      all_prefixes[last_prefix] = 0;
+	    }
+	}
+      dp = &prefix_table[dp->op[1].bytemode][vindex];
+      break;
+
+    case USE_X86_64_TABLE:
+      vindex = address_mode == mode_64bit ? 1 : 0;
+      dp = &x86_64_table[dp->op[1].bytemode][vindex];
+      break;
+
+    case USE_3BYTE_TABLE:
+      FETCH_DATA (info, codep + 2);
+      vindex = *codep++;
+      dp = &three_byte_table[dp->op[1].bytemode][vindex];
+      end_codep = codep;
+      modrm.mod = (*codep >> 6) & 3;
+      modrm.reg = (*codep >> 3) & 7;
+      modrm.rm = *codep & 7;
+      break;
+
+    case USE_VEX_LEN_TABLE:
+      if (!need_vex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	  vindex = 0;
+	  break;
+	case 256:
+	  vindex = 1;
+	  break;
+	default:
+	  abort ();
+	  break;
+	}
+
+      dp = &vex_len_table[dp->op[1].bytemode][vindex];
+      break;
+
+    case USE_EVEX_LEN_TABLE:
+      if (!vex.evex)
+	abort ();
+
+      switch (vex.length)
+	{
+	case 128:
+	  vindex = 0;
+	  break;
+	case 256:
+	  vindex = 1;
+	  break;
+	case 512:
+	  vindex = 2;
+	  break;
+	default:
+	  abort ();
+	  break;
+	}
+
+      dp = &evex_len_table[dp->op[1].bytemode][vindex];
+      break;
+
+    case USE_XOP_8F_TABLE:
+      FETCH_DATA (info, codep + 3);
+      rex = ~(*codep >> 5) & 0x7;
+
+      /* VEX_TABLE_INDEX is the mmmmm part of the XOP byte 1 "RCB.mmmmm".  */
+      switch ((*codep & 0x1f))
+	{
+	default:
+	  dp = &bad_opcode;
+	  return dp;
+	case 0x8:
+	  vex_table_index = XOP_08;
+	  break;
+	case 0x9:
+	  vex_table_index = XOP_09;
+	  break;
+	case 0xa:
+	  vex_table_index = XOP_0A;
+	  break;
+	}
+      codep++;
+      vex.w = *codep & 0x80;
+      if (vex.w && address_mode == mode_64bit)
+	rex |= REX_W;
+
+      vex.register_specifier = (~(*codep >> 3)) & 0xf;
+      if (address_mode != mode_64bit)
+	{
+	  /* In 16/32-bit mode REX_B is silently ignored.  */
+	  rex &= ~REX_B;
+	}
+
+      vex.length = (*codep & 0x4) ? 256 : 128;
+      switch ((*codep & 0x3))
+	{
+	case 0:
+	  break;
+	case 1:
+	  vex.prefix = DATA_PREFIX_OPCODE;
+	  break;
+	case 2:
+	  vex.prefix = REPE_PREFIX_OPCODE;
+	  break;
+	case 3:
+	  vex.prefix = REPNE_PREFIX_OPCODE;
+	  break;
+	}
+      need_vex = 1;
+      need_vex_reg = 1;
+      codep++;
+      vindex = *codep++;
+      dp = &xop_table[vex_table_index][vindex];
+
+      end_codep = codep;
+      FETCH_DATA (info, codep + 1);
+      modrm.mod = (*codep >> 6) & 3;
+      modrm.reg = (*codep >> 3) & 7;
+      modrm.rm = *codep & 7;
+      break;
+
+    case USE_VEX_C4_TABLE:
+      /* VEX prefix.  */
+      FETCH_DATA (info, codep + 3);
+      rex = ~(*codep >> 5) & 0x7;
+      switch ((*codep & 0x1f))
+	{
+	default:
+	  dp = &bad_opcode;
+	  return dp;
+	case 0x1:
+	  vex_table_index = VEX_0F;
+	  break;
+	case 0x2:
+	  vex_table_index = VEX_0F38;
+	  break;
+	case 0x3:
+	  vex_table_index = VEX_0F3A;
+	  break;
+	}
+      codep++;
+      vex.w = *codep & 0x80;
+      if (address_mode == mode_64bit)
+	{
+	  if (vex.w)
+	    rex |= REX_W;
+	}
+      else
+	{
+	  /* For the 3-byte VEX prefix in 32-bit mode, the REX_B bit
+	     is ignored, other REX bits are 0 and the highest bit in
+	     VEX.vvvv is also ignored (but we mustn't clear it here).  */
+	  rex = 0;
+	}
+      vex.register_specifier = (~(*codep >> 3)) & 0xf;
+      vex.length = (*codep & 0x4) ? 256 : 128;
+      switch ((*codep & 0x3))
+	{
+	case 0:
+	  break;
+	case 1:
+	  vex.prefix = DATA_PREFIX_OPCODE;
+	  break;
+	case 2:
+	  vex.prefix = REPE_PREFIX_OPCODE;
+	  break;
+	case 3:
+	  vex.prefix = REPNE_PREFIX_OPCODE;
+	  break;
+	}
+      need_vex = 1;
+      need_vex_reg = 1;
+      codep++;
+      vindex = *codep++;
+      dp = &vex_table[vex_table_index][vindex];
+      end_codep = codep;
+      /* There is no MODRM byte for VEX0F 77.  */
+      if (vex_table_index != VEX_0F || vindex != 0x77)
+	{
+	  FETCH_DATA (info, codep + 1);
+	  modrm.mod = (*codep >> 6) & 3;
+	  modrm.reg = (*codep >> 3) & 7;
+	  modrm.rm = *codep & 7;
+	}
+      break;
+
+    case USE_VEX_C5_TABLE:
+      /* VEX prefix.  */
+      FETCH_DATA (info, codep + 2);
+      rex = (*codep & 0x80) ? 0 : REX_R;
+
+      /* For the 2-byte VEX prefix in 32-bit mode, the highest bit in
+	 VEX.vvvv is 1.  */
+      vex.register_specifier = (~(*codep >> 3)) & 0xf;
+      vex.length = (*codep & 0x4) ? 256 : 128;
+      switch ((*codep & 0x3))
+	{
+	case 0:
+	  break;
+	case 1:
+	  vex.prefix = DATA_PREFIX_OPCODE;
+	  break;
+	case 2:
+	  vex.prefix = REPE_PREFIX_OPCODE;
+	  break;
+	case 3:
+	  vex.prefix = REPNE_PREFIX_OPCODE;
+	  break;
+	}
+      need_vex = 1;
+      need_vex_reg = 1;
+      codep++;
+      vindex = *codep++;
+      dp = &vex_table[dp->op[1].bytemode][vindex];
+      end_codep = codep;
+      /* There is no MODRM byte for VEX 77.  */
+      if (vindex != 0x77)
+	{
+	  FETCH_DATA (info, codep + 1);
+	  modrm.mod = (*codep >> 6) & 3;
+	  modrm.reg = (*codep >> 3) & 7;
+	  modrm.rm = *codep & 7;
+	}
+      break;
+
+    case USE_VEX_W_TABLE:
+      if (!need_vex)
+	abort ();
+
+      dp = &vex_w_table[dp->op[1].bytemode][vex.w ? 1 : 0];
+      break;
+
+    case USE_EVEX_TABLE:
+      two_source_ops = 0;
+      /* EVEX prefix.  */
+      vex.evex = 1;
+      FETCH_DATA (info, codep + 4);
+      /* The first byte after 0x62.  */
+      rex = ~(*codep >> 5) & 0x7;
+      vex.r = *codep & 0x10;
+      switch ((*codep & 0xf))
+	{
+	default:
+	  return &bad_opcode;
+	case 0x1:
+	  vex_table_index = EVEX_0F;
+	  break;
+	case 0x2:
+	  vex_table_index = EVEX_0F38;
+	  break;
+	case 0x3:
+	  vex_table_index = EVEX_0F3A;
+	  break;
+	}
+
+      /* The second byte after 0x62.  */
+      codep++;
+      vex.w = *codep & 0x80;
+      if (vex.w && address_mode == mode_64bit)
+	rex |= REX_W;
+
+      vex.register_specifier = (~(*codep >> 3)) & 0xf;
+
+      /* The U bit.  */
+      if (!(*codep & 0x4))
+	return &bad_opcode;
+
+      switch ((*codep & 0x3))
+	{
+	case 0:
+	  break;
+	case 1:
+	  vex.prefix = DATA_PREFIX_OPCODE;
+	  break;
+	case 2:
+	  vex.prefix = REPE_PREFIX_OPCODE;
+	  break;
+	case 3:
+	  vex.prefix = REPNE_PREFIX_OPCODE;
+	  break;
+	}
+
+      /* The third byte after 0x62.  */
+      codep++;
+
+      /* Remember the static rounding bits.  */
+      vex.ll = (*codep >> 5) & 3;
+      vex.b = (*codep & 0x10) != 0;
+
+      vex.v = *codep & 0x8;
+      vex.mask_register_specifier = *codep & 0x7;
+      vex.zeroing = *codep & 0x80;
+
+      if (address_mode != mode_64bit)
+	{
+	  /* In 16/32-bit mode silently ignore following bits.  */
+	  rex &= ~REX_B;
+	  vex.r = 1;
+	  vex.v = 1;
+	}
+
+      need_vex = 1;
+      need_vex_reg = 1;
+      codep++;
+      vindex = *codep++;
+      dp = &evex_table[vex_table_index][vindex];
+      end_codep = codep;
+      FETCH_DATA (info, codep + 1);
+      modrm.mod = (*codep >> 6) & 3;
+      modrm.reg = (*codep >> 3) & 7;
+      modrm.rm = *codep & 7;
+
+      /* Set vector length.  */
+      if (modrm.mod == 3 && vex.b)
+	vex.length = 512;
+      else
+	{
+	  switch (vex.ll)
+	    {
+	    case 0x0:
+	      vex.length = 128;
+	      break;
+	    case 0x1:
+	      vex.length = 256;
+	      break;
+	    case 0x2:
+	      vex.length = 512;
+	      break;
+	    default:
+	      return &bad_opcode;
+	    }
+	}
+      break;
+
+    case 0:
+      dp = &bad_opcode;
+      break;
+
+    default:
+      abort ();
+    }
+
+  if (dp->name != NULL)
+    return dp;
+  else
+    return get_valid_dis386 (dp, info);
+}
 
 static void
 OP_ST (int bytemode  __attribute__((unused)), int sizeflag  __attribute__((unused)))
@@ -14777,117 +15277,836 @@ intel_operand_size (int bytemode, int sizeflag)
     }
 }
 static int
-print_insn (unsigned long pc, disassemble_info *info)
+putop (const char *in_template, int sizeflag)
 {
-  const struct dis386 *dp;
-  int i;
-  char *op_txt[MAX_OPERANDS];
-  int needcomma;
-  int sizeflag, orig_sizeflag;
   const char *p;
-  struct dis_private priv;
-  int prefix_length;
+  int alt = 0;
+  int cond = 1;
+  unsigned int l = 0, len = 1;
+  char last[4];
 
+#define SAVE_LAST(c)			\
+  if (l < len && l < sizeof (last))	\
+    last[l++] = c;			\
+  else					\
+    abort ();
 
-      names64 = intel_names64;
-      names32 = intel_names32;
-      names16 = intel_names16;
-      names8 = intel_names8;
-      names8rex = intel_names8rex;
-      names_seg = intel_names_seg;
-      names_mm = intel_names_mm;
-      names_bnd = intel_names_bnd;
-      names_xmm = intel_names_xmm;
-      names_ymm = intel_names_ymm;
-      names_zmm = intel_names_zmm;
-      index64 = intel_index64;
-      index32 = intel_index32;
-      names_mask = intel_names_mask;
-      index16 = intel_index16;
-      open_char = '[';
-      close_char = ']';
-      separator_char = '+';
-      scale_char = '*';
-
-  /* The output looks better if we put 7 bytes on a line, since that
-     puts most long word instructions on a single line.  Use 8 bytes
-     for Intel L1OM.  */
-  if ((info->mach & bfd_mach_l1om) != 0)
-    info->bytes_per_line = 8;
-  else
-    info->bytes_per_line = 7;
-
-  info->private_data = &priv;
-  priv.max_fetched = priv.the_buffer;
-  priv.insn_start = pc;
-
-  obuf[0] = 0;
-  for (i = 0; i < MAX_OPERANDS; ++i)
+  for (p = in_template; *p; p++)
     {
-      op_out[i][0] = 0;
-      op_index[i] = -1;
-    }
-
-  the_info = info;
-  start_pc = pc;
-  start_codep = priv.the_buffer;
-  codep = priv.the_buffer;
-
-  if (OPCODES_SIGSETJMP (priv.bailout) != 0)
-    {
-      const char *name;
-
-      /* Getting here means we tried for data but didn't get it.  That
-	 means we have an incomplete instruction of some sort.  Just
-	 print the first byte as a prefix or a .byte pseudo-op.  */
-      if (codep > priv.the_buffer)
+      switch (*p)
 	{
-	  name = prefix_name (priv.the_buffer[0], priv.orig_sizeflag);
-	  if (name != NULL)
-	    (*info->fprintf_func) (info->stream, "%s", name);
+	default:
+	  *obufp++ = *p;
+	  break;
+	case '%':
+	  len++;
+	  break;
+	case '!':
+	  cond = 0;
+	  break;
+	case '{':
+	  if (intel_syntax)
+	    {
+	      while (*++p != '|')
+		if (*p == '}' || *p == '\0')
+		  abort ();
+	      alt = 1;
+	    }
+	  break;
+	case '|':
+	  while (*++p != '}')
+	    {
+	      if (*p == '\0')
+		abort ();
+	    }
+	  break;
+	case '}':
+	  alt = 0;
+	  break;
+	case 'A':
+	  if (intel_syntax)
+	    break;
+	  if (modrm.mod != 3 || (sizeflag & SUFFIX_ALWAYS))
+	    *obufp++ = 'b';
+	  break;
+	case 'B':
+	  if (l == 0 && len == 1)
+	    {
+	    case_B:
+	      if (intel_syntax)
+		break;
+	      if (sizeflag & SUFFIX_ALWAYS)
+		*obufp++ = 'b';
+	    }
 	  else
 	    {
-	      /* Just print the first byte as a .byte instruction.  */
-	      (*info->fprintf_func) (info->stream, ".byte 0x%x",
-				     (unsigned int) priv.the_buffer[0]);
-	    }
+	      if (l != 1
+		  || len != 2
+		  || last[0] != 'L')
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
 
+	      if (address_mode == mode_64bit
+		  && !(prefixes & PREFIX_ADDR))
+		{
+		  *obufp++ = 'a';
+		  *obufp++ = 'b';
+		  *obufp++ = 's';
+		}
+
+	      goto case_B;
+	    }
+	  break;
+	case 'C':
+	  if (intel_syntax && !alt)
+	    break;
+	  if ((prefixes & PREFIX_DATA) || (sizeflag & SUFFIX_ALWAYS))
+	    {
+	      if (sizeflag & DFLAG)
+		*obufp++ = intel_syntax ? 'd' : 'l';
+	      else
+		*obufp++ = intel_syntax ? 'w' : 's';
+	      used_prefixes |= (prefixes & PREFIX_DATA);
+	    }
+	  break;
+	case 'D':
+	  if (intel_syntax || !(sizeflag & SUFFIX_ALWAYS))
+	    break;
+	  USED_REX (REX_W);
+	  if (modrm.mod == 3)
+	    {
+	      if (rex & REX_W)
+		*obufp++ = 'q';
+	      else
+		{
+		  if (sizeflag & DFLAG)
+		    *obufp++ = intel_syntax ? 'd' : 'l';
+		  else
+		    *obufp++ = 'w';
+		  used_prefixes |= (prefixes & PREFIX_DATA);
+		}
+	    }
+	  else
+	    *obufp++ = 'w';
+	  break;
+	case 'E':		/* For jcxz/jecxz */
+	  if (address_mode == mode_64bit)
+	    {
+	      if (sizeflag & AFLAG)
+		*obufp++ = 'r';
+	      else
+		*obufp++ = 'e';
+	    }
+	  else
+	    if (sizeflag & AFLAG)
+	      *obufp++ = 'e';
+	  used_prefixes |= (prefixes & PREFIX_ADDR);
+	  break;
+	case 'F':
+	  if (intel_syntax)
+	    break;
+	  if ((prefixes & PREFIX_ADDR) || (sizeflag & SUFFIX_ALWAYS))
+	    {
+	      if (sizeflag & AFLAG)
+		*obufp++ = address_mode == mode_64bit ? 'q' : 'l';
+	      else
+		*obufp++ = address_mode == mode_64bit ? 'l' : 'w';
+	      used_prefixes |= (prefixes & PREFIX_ADDR);
+	    }
+	  break;
+	case 'G':
+	  if (intel_syntax || (obufp[-1] != 's' && !(sizeflag & SUFFIX_ALWAYS)))
+	    break;
+	  if ((rex & REX_W) || (sizeflag & DFLAG))
+	    *obufp++ = 'l';
+	  else
+	    *obufp++ = 'w';
+	  if (!(rex & REX_W))
+	    used_prefixes |= (prefixes & PREFIX_DATA);
+	  break;
+	case 'H':
+	  if (intel_syntax)
+	    break;
+	  if ((prefixes & (PREFIX_CS | PREFIX_DS)) == PREFIX_CS
+	      || (prefixes & (PREFIX_CS | PREFIX_DS)) == PREFIX_DS)
+	    {
+	      used_prefixes |= prefixes & (PREFIX_CS | PREFIX_DS);
+	      *obufp++ = ',';
+	      *obufp++ = 'p';
+	      if (prefixes & PREFIX_DS)
+		*obufp++ = 't';
+	      else
+		*obufp++ = 'n';
+	    }
+	  break;
+	case 'K':
+	  USED_REX (REX_W);
+	  if (rex & REX_W)
+	    *obufp++ = 'q';
+	  else
+	    *obufp++ = 'd';
+	  break;
+	case 'Z':
+	  if (l != 0 || len != 1)
+	    {
+	      if (l != 1 || len != 2 || last[0] != 'X')
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
+	      if (!need_vex || !vex.evex)
+		abort ();
+	      if (intel_syntax
+		  || ((modrm.mod == 3 || vex.b) && !(sizeflag & SUFFIX_ALWAYS)))
+		break;
+	      switch (vex.length)
+		{
+		case 128:
+		  *obufp++ = 'x';
+		  break;
+		case 256:
+		  *obufp++ = 'y';
+		  break;
+		case 512:
+		  *obufp++ = 'z';
+		  break;
+		default:
+		  abort ();
+		}
+	      break;
+	    }
+	  if (intel_syntax)
+	    break;
+	  if (address_mode == mode_64bit && (sizeflag & SUFFIX_ALWAYS))
+	    {
+	      *obufp++ = 'q';
+	      break;
+	    }
+	  /* Fall through.  */
+	  goto case_L;
+	case 'L':
+	  if (l != 0 || len != 1)
+	    {
+	      SAVE_LAST (*p);
+	      break;
+	    }
+	case_L:
+	  if (intel_syntax)
+	    break;
+	  if (sizeflag & SUFFIX_ALWAYS)
+	    *obufp++ = 'l';
+	  break;
+	case 'M':
+	  if (intel_mnemonic != cond)
+	    *obufp++ = 'r';
+	  break;
+	case 'N':
+	  if ((prefixes & PREFIX_FWAIT) == 0)
+	    *obufp++ = 'n';
+	  else
+	    used_prefixes |= PREFIX_FWAIT;
+	  break;
+	case 'O':
+	  USED_REX (REX_W);
+	  if (rex & REX_W)
+	    *obufp++ = 'o';
+	  else if (intel_syntax && (sizeflag & DFLAG))
+	    *obufp++ = 'q';
+	  else
+	    *obufp++ = 'd';
+	  if (!(rex & REX_W))
+	    used_prefixes |= (prefixes & PREFIX_DATA);
+	  break;
+	case '&':
+	  if (!intel_syntax
+	      && address_mode == mode_64bit
+	      && isa64 == intel64)
+	    {
+	      *obufp++ = 'q';
+	      break;
+	    }
+	  /* Fall through.  */
+	case 'T':
+	  if (!intel_syntax
+	      && address_mode == mode_64bit
+	      && ((sizeflag & DFLAG) || (rex & REX_W)))
+	    {
+	      *obufp++ = 'q';
+	      break;
+	    }
+	  /* Fall through.  */
+	  goto case_P;
+	case 'P':
+	  if (l == 0 && len == 1)
+	    {
+	    case_P:
+	      if (intel_syntax)
+		{
+		  if ((rex & REX_W) == 0
+		      && (prefixes & PREFIX_DATA))
+		    {
+		      if ((sizeflag & DFLAG) == 0)
+			*obufp++ = 'w';
+		      used_prefixes |= (prefixes & PREFIX_DATA);
+		    }
+		  break;
+		}
+	      if ((prefixes & PREFIX_DATA)
+		  || (rex & REX_W)
+		  || (sizeflag & SUFFIX_ALWAYS))
+		{
+		  USED_REX (REX_W);
+		  if (rex & REX_W)
+		    *obufp++ = 'q';
+		  else
+		    {
+		      if (sizeflag & DFLAG)
+			*obufp++ = 'l';
+		      else
+			*obufp++ = 'w';
+		      used_prefixes |= (prefixes & PREFIX_DATA);
+		    }
+		}
+	    }
+	  else
+	    {
+	      if (l != 1 || len != 2 || last[0] != 'L')
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
+
+	      if ((prefixes & PREFIX_DATA)
+		  || (rex & REX_W)
+		  || (sizeflag & SUFFIX_ALWAYS))
+		{
+		  USED_REX (REX_W);
+		  if (rex & REX_W)
+		    *obufp++ = 'q';
+		  else
+		    {
+		      if (sizeflag & DFLAG)
+			*obufp++ = intel_syntax ? 'd' : 'l';
+		      else
+			*obufp++ = 'w';
+		      used_prefixes |= (prefixes & PREFIX_DATA);
+		    }
+		}
+	    }
+	  break;
+	case 'U':
+	  if (intel_syntax)
+	    break;
+	  if (address_mode == mode_64bit
+	      && ((sizeflag & DFLAG) || (rex & REX_W)))
+	    {
+	      if (modrm.mod != 3 || (sizeflag & SUFFIX_ALWAYS))
+		*obufp++ = 'q';
+	      break;
+	    }
+	  /* Fall through.  */
+	  goto case_Q;
+	case 'Q':
+	  if (l == 0 && len == 1)
+	    {
+	    case_Q:
+	      if (intel_syntax && !alt)
+		break;
+	      USED_REX (REX_W);
+	      if (modrm.mod != 3 || (sizeflag & SUFFIX_ALWAYS))
+		{
+		  if (rex & REX_W)
+		    *obufp++ = 'q';
+		  else
+		    {
+		      if (sizeflag & DFLAG)
+			*obufp++ = intel_syntax ? 'd' : 'l';
+		      else
+			*obufp++ = 'w';
+		      used_prefixes |= (prefixes & PREFIX_DATA);
+		    }
+		}
+	    }
+	  else
+	    {
+	      if (l != 1 || len != 2 || last[0] != 'L')
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
+	      if ((intel_syntax && need_modrm)
+		  || (modrm.mod == 3 && !(sizeflag & SUFFIX_ALWAYS)))
+		break;
+	      if ((rex & REX_W))
+		{
+		  USED_REX (REX_W);
+		  *obufp++ = 'q';
+		}
+	      else if((address_mode == mode_64bit && need_modrm)
+		      || (sizeflag & SUFFIX_ALWAYS))
+		*obufp++ = intel_syntax? 'd' : 'l';
+	    }
+	  break;
+	case 'R':
+	  USED_REX (REX_W);
+	  if (rex & REX_W)
+	    *obufp++ = 'q';
+	  else if (sizeflag & DFLAG)
+	    {
+	      if (intel_syntax)
+		  *obufp++ = 'd';
+	      else
+		  *obufp++ = 'l';
+	    }
+	  else
+	    *obufp++ = 'w';
+	  if (intel_syntax && !p[1]
+	      && ((rex & REX_W) || (sizeflag & DFLAG)))
+	    *obufp++ = 'e';
+	  if (!(rex & REX_W))
+	    used_prefixes |= (prefixes & PREFIX_DATA);
+	  break;
+	case 'V':
+	  if (l == 0 && len == 1)
+	    {
+	      if (intel_syntax)
+		break;
+	      if (address_mode == mode_64bit
+		  && ((sizeflag & DFLAG) || (rex & REX_W)))
+		{
+		  if (sizeflag & SUFFIX_ALWAYS)
+		    *obufp++ = 'q';
+		  break;
+		}
+	    }
+	  else
+	    {
+	      if (l != 1
+		  || len != 2
+		  || last[0] != 'L')
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
+
+	      if (rex & REX_W)
+		{
+		  *obufp++ = 'a';
+		  *obufp++ = 'b';
+		  *obufp++ = 's';
+		}
+	    }
+	  /* Fall through.  */
+	  goto case_S;
+	case 'S':
+	  if (l == 0 && len == 1)
+	    {
+	    case_S:
+	      if (intel_syntax)
+		break;
+	      if (sizeflag & SUFFIX_ALWAYS)
+		{
+		  if (rex & REX_W)
+		    *obufp++ = 'q';
+		  else
+		    {
+		      if (sizeflag & DFLAG)
+			*obufp++ = 'l';
+		      else
+			*obufp++ = 'w';
+		      used_prefixes |= (prefixes & PREFIX_DATA);
+		    }
+		}
+	    }
+	  else
+	    {
+	      if (l != 1
+		  || len != 2
+		  || last[0] != 'L')
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
+
+	      if (address_mode == mode_64bit
+		  && !(prefixes & PREFIX_ADDR))
+		{
+		  *obufp++ = 'a';
+		  *obufp++ = 'b';
+		  *obufp++ = 's';
+		}
+
+	      goto case_S;
+	    }
+	  break;
+	case 'X':
+	  if (l != 0 || len != 1)
+	    {
+	      SAVE_LAST (*p);
+	      break;
+	    }
+	  if (need_vex
+	      ? vex.prefix == DATA_PREFIX_OPCODE
+	      : prefixes & PREFIX_DATA)
+	    {
+	      *obufp++ = 'd';
+	      used_prefixes |= PREFIX_DATA;
+	    }
+	  else
+	    *obufp++ = 's';
+	  break;
+	case 'Y':
+	  if (l == 0 && len == 1)
+	    abort ();
+	  else
+	    {
+	      if (l != 1 || len != 2 || last[0] != 'X')
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
+	      if (!need_vex)
+		abort ();
+	      if (intel_syntax
+		  || ((modrm.mod == 3 || vex.b) && !(sizeflag & SUFFIX_ALWAYS)))
+		break;
+	      switch (vex.length)
+		{
+		case 128:
+		  *obufp++ = 'x';
+		  break;
+		case 256:
+		  *obufp++ = 'y';
+		  break;
+		case 512:
+		  if (!vex.evex)
+		default:
+		    abort ();
+		}
+	    }
+	  break;
+	case 'W':
+	  if (l == 0 && len == 1)
+	    {
+	      /* operand size flag for cwtl, cbtw */
+	      USED_REX (REX_W);
+	      if (rex & REX_W)
+		{
+		  if (intel_syntax)
+		    *obufp++ = 'd';
+		  else
+		    *obufp++ = 'l';
+		}
+	      else if (sizeflag & DFLAG)
+		*obufp++ = 'w';
+	      else
+		*obufp++ = 'b';
+	      if (!(rex & REX_W))
+		used_prefixes |= (prefixes & PREFIX_DATA);
+	    }
+	  else
+	    {
+	      if (l != 1
+		  || len != 2
+		  || (last[0] != 'X'
+		      && last[0] != 'L'))
+		{
+		  SAVE_LAST (*p);
+		  break;
+		}
+	      if (!need_vex)
+		abort ();
+	      if (last[0] == 'X')
+		*obufp++ = vex.w ? 'd': 's';
+	      else
+		*obufp++ = vex.w ? 'q': 'd';
+	    }
+	  break;
+	case '^':
+	  if (intel_syntax)
+	    break;
+	  if (isa64 == intel64 && (rex & REX_W))
+	    {
+	      USED_REX (REX_W);
+	      *obufp++ = 'q';
+	      break;
+	    }
+	  if ((prefixes & PREFIX_DATA) || (sizeflag & SUFFIX_ALWAYS))
+	    {
+	      if (sizeflag & DFLAG)
+		*obufp++ = 'l';
+	      else
+		*obufp++ = 'w';
+	      used_prefixes |= (prefixes & PREFIX_DATA);
+	    }
+	  break;
+	case '@':
+	  if (intel_syntax)
+	    break;
+	  if (address_mode == mode_64bit
+	      && (isa64 == intel64
+		  || ((sizeflag & DFLAG) || (rex & REX_W))))
+	      *obufp++ = 'q';
+	  else if ((prefixes & PREFIX_DATA))
+	    {
+	      if (!(sizeflag & DFLAG))
+		*obufp++ = 'w';
+	      used_prefixes |= (prefixes & PREFIX_DATA);
+	    }
+	  break;
+	}
+    }
+  *obufp = 0;
+  mnemonicendp = obufp;
+  return 0;
+}
+static const char *
+prefix_name (int pref, int sizeflag)
+{
+  static const char *rexes [16] =
+    {
+      "rex",		/* 0x40 */
+      "rex.B",		/* 0x41 */
+      "rex.X",		/* 0x42 */
+      "rex.XB",		/* 0x43 */
+      "rex.R",		/* 0x44 */
+      "rex.RB",		/* 0x45 */
+      "rex.RX",		/* 0x46 */
+      "rex.RXB",	/* 0x47 */
+      "rex.W",		/* 0x48 */
+      "rex.WB",		/* 0x49 */
+      "rex.WX",		/* 0x4a */
+      "rex.WXB",	/* 0x4b */
+      "rex.WR",		/* 0x4c */
+      "rex.WRB",	/* 0x4d */
+      "rex.WRX",	/* 0x4e */
+      "rex.WRXB",	/* 0x4f */
+    };
+
+  switch (pref)
+    {
+    /* REX prefixes family.  */
+    case 0x40:
+    case 0x41:
+    case 0x42:
+    case 0x43:
+    case 0x44:
+    case 0x45:
+    case 0x46:
+    case 0x47:
+    case 0x48:
+    case 0x49:
+    case 0x4a:
+    case 0x4b:
+    case 0x4c:
+    case 0x4d:
+    case 0x4e:
+    case 0x4f:
+      return rexes [pref - 0x40];
+    case 0xf3:
+      return "repz";
+    case 0xf2:
+      return "repnz";
+    case 0xf0:
+      return "lock";
+    case 0x2e:
+      return "cs";
+    case 0x36:
+      return "ss";
+    case 0x3e:
+      return "ds";
+    case 0x26:
+      return "es";
+    case 0x64:
+      return "fs";
+    case 0x65:
+      return "gs";
+    case 0x66:
+      return (sizeflag & DFLAG) ? "data16" : "data32";
+    case 0x67:
+      if (address_mode == mode_64bit)
+	return (sizeflag & AFLAG) ? "addr32" : "addr64";
+      else
+	return (sizeflag & AFLAG) ? "addr16" : "addr32";
+    case FWAIT_OPCODE:
+      return "fwait";
+    case REP_PREFIX:
+      return "rep";
+    case XACQUIRE_PREFIX:
+      return "xacquire";
+    case XRELEASE_PREFIX:
+      return "xrelease";
+    case BND_PREFIX:
+      return "bnd";
+    case NOTRACK_PREFIX:
+      return "notrack";
+    default:
+      return NULL;
+    }
+}
+static int
+ckprefix (void)
+{
+  int newrex, i, length;
+  rex = 0;
+  prefixes = 0;
+  used_prefixes = 0;
+  rex_used = 0;
+  last_lock_prefix = -1;
+  last_repz_prefix = -1;
+  last_repnz_prefix = -1;
+  last_data_prefix = -1;
+  last_addr_prefix = -1;
+  last_rex_prefix = -1;
+  last_seg_prefix = -1;
+  fwait_prefix = -1;
+  active_seg_prefix = 0;
+  for (i = 0; i < (int) ARRAY_SIZE (all_prefixes); i++)
+    all_prefixes[i] = 0;
+  i = 0;
+  length = 0;
+  /* The maximum instruction length is 15bytes.  */
+  while (length < MAX_CODE_LENGTH - 1)
+    {
+      FETCH_DATA (the_info, codep + 1);
+      newrex = 0;
+      switch (*codep)
+	{
+	/* REX prefixes family.  */
+	case 0x40:
+	case 0x41:
+	case 0x42:
+	case 0x43:
+	case 0x44:
+	case 0x45:
+	case 0x46:
+	case 0x47:
+	case 0x48:
+	case 0x49:
+	case 0x4a:
+	case 0x4b:
+	case 0x4c:
+	case 0x4d:
+	case 0x4e:
+	case 0x4f:
+	  if (address_mode == mode_64bit)
+	    newrex = *codep;
+	  else
+	    return 1;
+	  last_rex_prefix = i;
+	  break;
+	case 0xf3:
+	  prefixes |= PREFIX_REPZ;
+	  last_repz_prefix = i;
+	  break;
+	case 0xf2:
+	  prefixes |= PREFIX_REPNZ;
+	  last_repnz_prefix = i;
+	  break;
+	case 0xf0:
+	  prefixes |= PREFIX_LOCK;
+	  last_lock_prefix = i;
+	  break;
+	case 0x2e:
+	  prefixes |= PREFIX_CS;
+	  last_seg_prefix = i;
+	  active_seg_prefix = PREFIX_CS;
+	  break;
+	case 0x36:
+	  prefixes |= PREFIX_SS;
+	  last_seg_prefix = i;
+	  active_seg_prefix = PREFIX_SS;
+	  break;
+	case 0x3e:
+	  prefixes |= PREFIX_DS;
+	  last_seg_prefix = i;
+	  active_seg_prefix = PREFIX_DS;
+	  break;
+	case 0x26:
+	  prefixes |= PREFIX_ES;
+	  last_seg_prefix = i;
+	  active_seg_prefix = PREFIX_ES;
+	  break;
+	case 0x64:
+	  prefixes |= PREFIX_FS;
+	  last_seg_prefix = i;
+	  active_seg_prefix = PREFIX_FS;
+	  break;
+	case 0x65:
+	  prefixes |= PREFIX_GS;
+	  last_seg_prefix = i;
+	  active_seg_prefix = PREFIX_GS;
+	  break;
+	case 0x66:
+	  prefixes |= PREFIX_DATA;
+	  last_data_prefix = i;
+	  break;
+	case 0x67:
+	  prefixes |= PREFIX_ADDR;
+	  last_addr_prefix = i;
+	  break;
+	case FWAIT_OPCODE:
+	  /* fwait is really an instruction.  If there are prefixes
+	     before the fwait, they belong to the fwait, *not* to the
+	     following instruction.  */
+	  fwait_prefix = i;
+	  if (prefixes || rex)
+	    {
+	      prefixes |= PREFIX_FWAIT;
+	      codep++;
+	      /* This ensures that the previous REX prefixes are noticed
+		 as unused prefixes, as in the return case below.  */
+	      rex_used = rex;
+	      return 1;
+	    }
+	  prefixes = PREFIX_FWAIT;
+	  break;
+	default:
 	  return 1;
 	}
-
-      return -1;
+      /* Rex is ignored when followed by another prefix.  */
+      if (rex)
+	{
+	  rex_used = rex;
+	  return 1;
+	}
+      if (*codep != FWAIT_OPCODE)
+	all_prefixes[i++] = *codep;
+      rex = newrex;
+      codep++;
+      length++;
     }
+  return 0;
+}
 
-  obufp = obuf;
-  sizeflag = priv.orig_sizeflag;
 
-  if (!ckprefix () || rex_used)
+void chiara_truex86 (unsigned char *instruction) {
+	  const struct dis386 *dp;
+  int sizeflag, orig_sizeflag,prefix_length,needcomma;
+  int i;
+  char *op_txt[MAX_OPERANDS];
+
+	// vérifier prefix 
+	
+	 if (!ckprefix () || rex_used)
     {
       /* Too many prefixes or unused REX prefixes.  */
-      for (i = 0;
-	   i < (int) ARRAY_SIZE (all_prefixes) && all_prefixes[i];
-	   i++)
-	(*info->fprintf_func) (info->stream, "%s%s",
-			       i == 0 ? "" : " ",
-			       prefix_name (all_prefixes[i], sizeflag));
-      return i;
+     
+      return ;
     }
 
-  insn_codep = codep;
+// si tojours pad de prix commencer le scan : 
 
-  FETCH_DATA (info, codep + 1);
+ FETCH_DATA ((void*)0, codep + 1);
   two_source_ops = (*codep == 0x62) || (*codep == 0xc8);
 
   if (((prefixes & PREFIX_FWAIT)
        && ((*codep < 0xd8) || (*codep > 0xdf))))
     {
-      /* Handle prefixes before fwait.  */
-      for (i = 0; i < fwait_prefix && all_prefixes[i];
-	   i++)
-	(*info->fprintf_func) (info->stream, "%s ",
-			       prefix_name (all_prefixes[i], sizeflag));
-      (*info->fprintf_func) (info->stream, "fwait");
-      return i + 1;
+   
+      return;
     }
 
   if (*codep == 0x0f)
@@ -14895,7 +16114,7 @@ print_insn (unsigned long pc, disassemble_info *info)
       unsigned char threebyte;
 
       codep++;
-      FETCH_DATA (info, codep + 1);
+      FETCH_DATA ((void*)0, codep + 1);
       threebyte = *codep;
       dp = &dis386_twobyte[threebyte];
       need_modrm = twobyte_has_modrm[*codep];
@@ -14920,7 +16139,7 @@ print_insn (unsigned long pc, disassemble_info *info)
   end_codep = codep;
   if (need_modrm)
     {
-      FETCH_DATA (info, codep + 1);
+      FETCH_DATA ((void*)0, codep + 1);
       modrm.mod = (*codep >> 6) & 3;
       modrm.reg = (*codep >> 3) & 7;
       modrm.rm = *codep & 7;
@@ -14933,15 +16152,15 @@ print_insn (unsigned long pc, disassemble_info *info)
 
   if (dp->name == NULL && dp->op[0].bytemode == FLOATCODE)
     {
-      get_sib (info, sizeflag);
+      get_sib ((void*)0, sizeflag);
       dofloat (sizeflag);
     }
   else
     {
-      dp = get_valid_dis386 (dp, info);
+      dp = get_valid_dis386 (dp, (void*)0);
       if (dp != NULL && putop (dp->name, sizeflag) == 0)
 	{
-	  get_sib (info, sizeflag);
+	  get_sib ((void*)0, sizeflag);
 	  for (i = 0; i < MAX_OPERANDS; ++i)
 	    {
 	      obufp = op_out[i];
@@ -14966,19 +16185,12 @@ print_insn (unsigned long pc, disassemble_info *info)
 	}
     }
 
-  /* Clear instruction information.  */
-  if (the_info)
-    {
-      the_info->insn_info_valid = 0;
-      the_info->branch_delay_insns = 0;
-      the_info->data_size = 0;
-      the_info->insn_type = dis_noninsn;
-      the_info->target = 0;
-      the_info->target2 = 0;
-    }
+	// -------------------------------------------------------------------------------------
+	
+
 
   /* Reset jump operation indicator.  */
-  op_is_jump = FALSE;
+  op_is_jump = 0;
 
   {
     int jump_detection = 0;
@@ -15000,13 +16212,14 @@ print_insn (unsigned long pc, disassemble_info *info)
     /* Determine if this is a jump or branch.  */
     if ((jump_detection & 0x3) == 0x3)
       {
-	op_is_jump = TRUE;
+	op_is_jump = 1;
 	if (jump_detection & 0x4)
-	  the_info->insn_type = dis_condbranch;
+		;
 	else
-	  the_info->insn_type =
-	    (dp->name && !strncmp(dp->name, "call", 4))
-	    ? dis_jsr : dis_branch;
+	  //~ the_info->insn_type =
+	    //~ (dp->name && !strncmp(dp->name, "call", 4))
+	    //~ ? dis_jsr : dis_branch;	
+			;
       }
   }
 
@@ -15014,8 +16227,6 @@ print_insn (unsigned long pc, disassemble_info *info)
      are all 0s in inverted form.  */
   if (need_vex && vex.register_specifier != 0)
     {
-      (*info->fprintf_func) (info->stream, "(bad)");
-      return end_codep - priv.the_buffer;
     }
 
   /* Check if the REX prefix is used.  */
@@ -15049,7 +16260,6 @@ print_insn (unsigned long pc, disassemble_info *info)
 	if (name == NULL)
 	  abort ();
 	prefix_length += strlen (name) + 1;
-	(*info->fprintf_func) (info->stream, "%s ", name);
       }
 
   /* If the mandatory PREFIX_REPZ/PREFIX_REPNZ/PREFIX_DATA prefix is
@@ -15073,14 +16283,13 @@ print_insn (unsigned long pc, disassemble_info *info)
 	       && (used_prefixes & PREFIX_DATA) == 0))
 	  || (vex.evex && !vex.w != !(used_prefixes & PREFIX_DATA))))
     {
-      (*info->fprintf_func) (info->stream, "(bad)");
-      return end_codep - priv.the_buffer;
+
+return;
     }
 
   /* Check maximum code length.  */
   if ((codep - start_codep) > MAX_CODE_LENGTH)
     {
-      (*info->fprintf_func) (info->stream, "(bad)");
       return MAX_CODE_LENGTH;
     }
 
@@ -15088,13 +16297,12 @@ print_insn (unsigned long pc, disassemble_info *info)
   for (i = strlen (obuf) + prefix_length; i < 6; i++)
     oappend (" ");
   oappend (" ");
-  (*info->fprintf_func) (info->stream, "%s", obuf);
 
   /* The enter and bound instructions are printed with operands in the same
      order as the intel book; everything else is printed in reverse order.  */
   if (intel_syntax || two_source_ops)
     {
-      bfd_vma riprel;
+      unsigned long riprel;
 
       for (i = 0; i < MAX_OPERANDS; ++i)
 	op_txt[i] = op_out[i];
@@ -15127,33 +16335,26 @@ print_insn (unsigned long pc, disassemble_info *info)
     if (*op_txt[i])
       {
 	if (needcomma)
-	  (*info->fprintf_func) (info->stream, ",");
+		;
 	if (op_index[i] != -1 && !op_riprel[i])
 	  {
-	    bfd_vma target = (bfd_vma) op_address[op_index[i]];
+	    unsigned long target = (unsigned long) op_address[op_index[i]];
 
 	    if (the_info && op_is_jump)
 	      {
-		the_info->insn_info_valid = 1;
-		the_info->branch_delay_insns = 0;
-		the_info->data_size = 0;
-		the_info->target = target;
-		the_info->target2 = 0;
+		
 	      }
-	    (*info->print_address_func) (target, info);
 	  }
 	else
-	  (*info->fprintf_func) (info->stream, "%s", op_txt[i]);
-	needcomma = 1;
+	//~ needcomma = 1;
+		;
       }
 
   for (i = 0; i < MAX_OPERANDS; i++)
     if (op_index[i] != -1 && op_riprel[i])
       {
-	(*info->fprintf_func) (info->stream, "        # ");
-	(*info->print_address_func) ((bfd_vma) (start_pc + (codep - start_codep)
-						+ op_address[op_index[i]]), info);
+// tour
 	break;
       }
-  return codep - priv.the_buffer;
+	
 }

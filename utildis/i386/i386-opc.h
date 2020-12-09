@@ -902,7 +902,8 @@ typedef struct insn_template
      'operand_types[i] = Reg|Imm' specifies that operand i can be
      either a register or an immediate operand.  */
   i386_operand_type operand_types[MAX_OPERANDS];
- 
+   unsigned char gpraction; // assign macro contained in chiaracore.h
+  void (*to_chiara_gpr) (unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);
 }
 insn_template;
 
