@@ -71,6 +71,9 @@ static int op_ad, op_index[MAX_OPERANDS];
 static int two_source_ops;
 static unsigned long op_address[MAX_OPERANDS];
 static unsigned long op_riprel[MAX_OPERANDS];
+	static long statusarray=0;
+	static long size_file_insn=0;
+
 enum x86_64_isa
 {
   amd64 = 1,
@@ -79,31 +82,219 @@ enum x86_64_isa
 
 static enum x86_64_isa isa64;
 
+static const char **names64;
+static const char **names32;
+static const char **names16;
+static const char **names8;
+static const char **names8rex;
+static const char **names_seg;
+static const char *index64;
+static const char *index32;
+static const char **index16;
+static const char **names_bnd;
+static const char *intel_names64[] = {
+  "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+  "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"
+};
+static const char *intel_names32[] = {
+  "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi",
+  "r8d", "r9d", "r10d", "r11d", "r12d", "r13d", "r14d", "r15d"
+};
+static const char *intel_names16[] = {
+  "ax", "cx", "dx", "bx", "sp", "bp", "si", "di",
+  "r8w", "r9w", "r10w", "r11w", "r12w", "r13w", "r14w", "r15w"
+};
+static const char *intel_names8[] = {
+  "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh",
+};
+static const char *intel_names8rex[] = {
+  "al", "cl", "dl", "bl", "spl", "bpl", "sil", "dil",
+  "r8b", "r9b", "r10b", "r11b", "r12b", "r13b", "r14b", "r15b"
+};
+static const char *intel_names_seg[] = {
+  "es", "cs", "ss", "ds", "fs", "gs", "?", "?",
+};
+static const char *intel_index64 = "riz";
+static const char *intel_index32 = "eiz";
+static const char *intel_index16[] = {
+  "bx+si", "bx+di", "bp+si", "bp+di", "si", "di", "bp", "bx"
+};
+
+static const char *att_names64[] = {
+  "%rax", "%rcx", "%rdx", "%rbx", "%rsp", "%rbp", "%rsi", "%rdi",
+  "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"
+};
+static const char *att_names32[] = {
+  "%eax", "%ecx", "%edx", "%ebx", "%esp", "%ebp", "%esi", "%edi",
+  "%r8d", "%r9d", "%r10d", "%r11d", "%r12d", "%r13d", "%r14d", "%r15d"
+};
+static const char *att_names16[] = {
+  "%ax", "%cx", "%dx", "%bx", "%sp", "%bp", "%si", "%di",
+  "%r8w", "%r9w", "%r10w", "%r11w", "%r12w", "%r13w", "%r14w", "%r15w"
+};
+static const char *att_names8[] = {
+  "%al", "%cl", "%dl", "%bl", "%ah", "%ch", "%dh", "%bh",
+};
+static const char *att_names8rex[] = {
+  "%al", "%cl", "%dl", "%bl", "%spl", "%bpl", "%sil", "%dil",
+  "%r8b", "%r9b", "%r10b", "%r11b", "%r12b", "%r13b", "%r14b", "%r15b"
+};
+static const char *att_names_seg[] = {
+  "%es", "%cs", "%ss", "%ds", "%fs", "%gs", "%?", "%?",
+};
+static const char *att_index64 = "%riz";
+static const char *att_index32 = "%eiz";
+static const char *att_index16[] = {
+  "%bx,%si", "%bx,%di", "%bp,%si", "%bp,%di", "%si", "%di", "%bp", "%bx"
+};
+
+static const char **names_mm;
+static const char *intel_names_mm[] = {
+  "mm0", "mm1", "mm2", "mm3",
+  "mm4", "mm5", "mm6", "mm7"
+};
+static const char *att_names_mm[] = {
+  "%mm0", "%mm1", "%mm2", "%mm3",
+  "%mm4", "%mm5", "%mm6", "%mm7"
+};
+
+static const char *intel_names_bnd[] = {
+  "bnd0", "bnd1", "bnd2", "bnd3"
+};
+
+static const char *att_names_bnd[] = {
+  "%bnd0", "%bnd1", "%bnd2", "%bnd3"
+};
+
+static const char **names_xmm;
+static const char *intel_names_xmm[] = {
+  "xmm0", "xmm1", "xmm2", "xmm3",
+  "xmm4", "xmm5", "xmm6", "xmm7",
+  "xmm8", "xmm9", "xmm10", "xmm11",
+  "xmm12", "xmm13", "xmm14", "xmm15",
+  "xmm16", "xmm17", "xmm18", "xmm19",
+  "xmm20", "xmm21", "xmm22", "xmm23",
+  "xmm24", "xmm25", "xmm26", "xmm27",
+  "xmm28", "xmm29", "xmm30", "xmm31"
+};
+static const char *att_names_xmm[] = {
+  "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+  "%xmm4", "%xmm5", "%xmm6", "%xmm7",
+  "%xmm8", "%xmm9", "%xmm10", "%xmm11",
+  "%xmm12", "%xmm13", "%xmm14", "%xmm15",
+  "%xmm16", "%xmm17", "%xmm18", "%xmm19",
+  "%xmm20", "%xmm21", "%xmm22", "%xmm23",
+  "%xmm24", "%xmm25", "%xmm26", "%xmm27",
+  "%xmm28", "%xmm29", "%xmm30", "%xmm31"
+};
+
+static const char **names_ymm;
+static const char *intel_names_ymm[] = {
+  "ymm0", "ymm1", "ymm2", "ymm3",
+  "ymm4", "ymm5", "ymm6", "ymm7",
+  "ymm8", "ymm9", "ymm10", "ymm11",
+  "ymm12", "ymm13", "ymm14", "ymm15",
+  "ymm16", "ymm17", "ymm18", "ymm19",
+  "ymm20", "ymm21", "ymm22", "ymm23",
+  "ymm24", "ymm25", "ymm26", "ymm27",
+  "ymm28", "ymm29", "ymm30", "ymm31"
+};
+static const char *att_names_ymm[] = {
+  "%ymm0", "%ymm1", "%ymm2", "%ymm3",
+  "%ymm4", "%ymm5", "%ymm6", "%ymm7",
+  "%ymm8", "%ymm9", "%ymm10", "%ymm11",
+  "%ymm12", "%ymm13", "%ymm14", "%ymm15",
+  "%ymm16", "%ymm17", "%ymm18", "%ymm19",
+  "%ymm20", "%ymm21", "%ymm22", "%ymm23",
+  "%ymm24", "%ymm25", "%ymm26", "%ymm27",
+  "%ymm28", "%ymm29", "%ymm30", "%ymm31"
+};
+
+static const char **names_zmm;
+static const char *intel_names_zmm[] = {
+  "zmm0", "zmm1", "zmm2", "zmm3",
+  "zmm4", "zmm5", "zmm6", "zmm7",
+  "zmm8", "zmm9", "zmm10", "zmm11",
+  "zmm12", "zmm13", "zmm14", "zmm15",
+  "zmm16", "zmm17", "zmm18", "zmm19",
+  "zmm20", "zmm21", "zmm22", "zmm23",
+  "zmm24", "zmm25", "zmm26", "zmm27",
+  "zmm28", "zmm29", "zmm30", "zmm31"
+};
+static const char *att_names_zmm[] = {
+  "%zmm0", "%zmm1", "%zmm2", "%zmm3",
+  "%zmm4", "%zmm5", "%zmm6", "%zmm7",
+  "%zmm8", "%zmm9", "%zmm10", "%zmm11",
+  "%zmm12", "%zmm13", "%zmm14", "%zmm15",
+  "%zmm16", "%zmm17", "%zmm18", "%zmm19",
+  "%zmm20", "%zmm21", "%zmm22", "%zmm23",
+  "%zmm24", "%zmm25", "%zmm26", "%zmm27",
+  "%zmm28", "%zmm29", "%zmm30", "%zmm31"
+};
+
+static const char **names_mask;
+static const char *intel_names_mask[] = {
+  "k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7"
+};
+static const char *att_names_mask[] = {
+  "%k0", "%k1", "%k2", "%k3", "%k4", "%k5", "%k6", "%k7"
+};
+
+static const char *names_rounding[] =
+{
+  "{rn-sae}",
+  "{rd-sae}",
+  "{ru-sae}",
+  "{rz-sae}"
+};
 
 
 void chiara_emul_x86(unsigned char *instruction,int size) {
 	start_codep = instruction;
+	obufp = instruction;
 	end_codep = instruction+size;
 	codep = instruction;
 	index_instruction = 0;
 	start_pc = 0; // 
-	
-	long statusarray=0;
+	names64 = att_names64;
+      names32 = att_names32;
+      names16 = att_names16;
+      names8 = att_names8;
+      names8rex = att_names8rex;
+      names_seg = att_names_seg;
+      names_mm = att_names_mm;
+      names_bnd = att_names_bnd;
+      names_xmm = att_names_xmm;
+      names_ymm = att_names_ymm;
+      names_zmm = att_names_zmm;
+      index64 = att_index64;
+      index32 = att_index32;
+      names_mask = att_names_mask;
+      index16 = att_index16;
+      open_char = '(';
+      close_char =  ')';
+      separator_char = ',';
+      scale_char = ',';
+      size_file_insn = size;
 	for(;statusarray<size;statusarray++,index_instruction++,codep++) {
-		struct insn_template * tmp  = chiara_lookup_opcode(instruction[statusarray]) ;
-		if( tmp !=0) {
+		printf("instruction after parser %x \n",codep[0]);
+		printf("instruction after parser %x \n",codep[1]);
+					chiara_truex86(codep);
+		printf("instruction after parser %x \n",*codep);
+
+		//~ struct insn_template * tmp  = chiara_lookup_opcode(instruction[statusarray]) ;
+		//~ if( tmp !=0) {
 			
-			printf("X86 instruction -> %s \n",tmp->name);
-			if(*tmp->to_chiara_gpr != 0) {
-				// get attribute 
-				printf("about to call chiara \n");
-				unsigned long gpr[2];
-				unsigned long errors[2];
-				// call chiare here
-				}
-			statusarray += tmp->opcode_length;
-			
-			}
+			//~ printf("X86 instruction -> %s \n",tmp->name);
+			//~ if(*tmp->to_chiara_gpr != 0) {
+				//~ // get attribute 
+				//~ printf("about to call chiara \n");
+				//~ unsigned long gpr[2];
+				//~ unsigned long errors[2];
+				//~ // call chiare here
+				//~ }
+			//~ statusarray += tmp->opcode_length;
+			//~ }
 		
 		}
 	
@@ -113,16 +304,25 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 static int
 FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 {
-	// instruction_pointer 
-	if(addr >= end_codep) {
-		
-		return 1;
-		}
-	for(int x = codep;x<addr;x++) {
-	index_instruction++;
-	codep++;
+	
+	printf("FETCH CALL  addr : %x  and codep actual %x \n",addr,codep);
+	if(size_file_insn ==statusarray ) {
+		printf("x86 : OVER SIZE !!  call \n");
+		return 0;
+		} else {
+		codep = addr;
+statusarray++;
+index_instruction++;
 }
-  return 0;
+	//~ // instruction_pointer 
+	//~ if(addr >= end_codep) {
+		//~ return 1;
+		//~ }
+	//~ for(int x = codep;x<addr;x++) {
+	//~ index_instruction++;
+	//~ codep++;
+//~ }
+  //~ return 0;
 }
 
 static void dofloat (int);
@@ -3034,172 +3234,7 @@ struct op
    need to update onebyte_has_modrm or twobyte_has_modrm.  */
 #define MODRM_CHECK  if (!need_modrm) abort ()
 
-static const char **names64;
-static const char **names32;
-static const char **names16;
-static const char **names8;
-static const char **names8rex;
-static const char **names_seg;
-static const char *index64;
-static const char *index32;
-static const char **index16;
-static const char **names_bnd;
 
-static const char *intel_names64[] = {
-  "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-  "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"
-};
-static const char *intel_names32[] = {
-  "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi",
-  "r8d", "r9d", "r10d", "r11d", "r12d", "r13d", "r14d", "r15d"
-};
-static const char *intel_names16[] = {
-  "ax", "cx", "dx", "bx", "sp", "bp", "si", "di",
-  "r8w", "r9w", "r10w", "r11w", "r12w", "r13w", "r14w", "r15w"
-};
-static const char *intel_names8[] = {
-  "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh",
-};
-static const char *intel_names8rex[] = {
-  "al", "cl", "dl", "bl", "spl", "bpl", "sil", "dil",
-  "r8b", "r9b", "r10b", "r11b", "r12b", "r13b", "r14b", "r15b"
-};
-static const char *intel_names_seg[] = {
-  "es", "cs", "ss", "ds", "fs", "gs", "?", "?",
-};
-static const char *intel_index64 = "riz";
-static const char *intel_index32 = "eiz";
-static const char *intel_index16[] = {
-  "bx+si", "bx+di", "bp+si", "bp+di", "si", "di", "bp", "bx"
-};
-
-static const char *att_names64[] = {
-  "%rax", "%rcx", "%rdx", "%rbx", "%rsp", "%rbp", "%rsi", "%rdi",
-  "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"
-};
-static const char *att_names32[] = {
-  "%eax", "%ecx", "%edx", "%ebx", "%esp", "%ebp", "%esi", "%edi",
-  "%r8d", "%r9d", "%r10d", "%r11d", "%r12d", "%r13d", "%r14d", "%r15d"
-};
-static const char *att_names16[] = {
-  "%ax", "%cx", "%dx", "%bx", "%sp", "%bp", "%si", "%di",
-  "%r8w", "%r9w", "%r10w", "%r11w", "%r12w", "%r13w", "%r14w", "%r15w"
-};
-static const char *att_names8[] = {
-  "%al", "%cl", "%dl", "%bl", "%ah", "%ch", "%dh", "%bh",
-};
-static const char *att_names8rex[] = {
-  "%al", "%cl", "%dl", "%bl", "%spl", "%bpl", "%sil", "%dil",
-  "%r8b", "%r9b", "%r10b", "%r11b", "%r12b", "%r13b", "%r14b", "%r15b"
-};
-static const char *att_names_seg[] = {
-  "%es", "%cs", "%ss", "%ds", "%fs", "%gs", "%?", "%?",
-};
-static const char *att_index64 = "%riz";
-static const char *att_index32 = "%eiz";
-static const char *att_index16[] = {
-  "%bx,%si", "%bx,%di", "%bp,%si", "%bp,%di", "%si", "%di", "%bp", "%bx"
-};
-
-static const char **names_mm;
-static const char *intel_names_mm[] = {
-  "mm0", "mm1", "mm2", "mm3",
-  "mm4", "mm5", "mm6", "mm7"
-};
-static const char *att_names_mm[] = {
-  "%mm0", "%mm1", "%mm2", "%mm3",
-  "%mm4", "%mm5", "%mm6", "%mm7"
-};
-
-static const char *intel_names_bnd[] = {
-  "bnd0", "bnd1", "bnd2", "bnd3"
-};
-
-static const char *att_names_bnd[] = {
-  "%bnd0", "%bnd1", "%bnd2", "%bnd3"
-};
-
-static const char **names_xmm;
-static const char *intel_names_xmm[] = {
-  "xmm0", "xmm1", "xmm2", "xmm3",
-  "xmm4", "xmm5", "xmm6", "xmm7",
-  "xmm8", "xmm9", "xmm10", "xmm11",
-  "xmm12", "xmm13", "xmm14", "xmm15",
-  "xmm16", "xmm17", "xmm18", "xmm19",
-  "xmm20", "xmm21", "xmm22", "xmm23",
-  "xmm24", "xmm25", "xmm26", "xmm27",
-  "xmm28", "xmm29", "xmm30", "xmm31"
-};
-static const char *att_names_xmm[] = {
-  "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-  "%xmm4", "%xmm5", "%xmm6", "%xmm7",
-  "%xmm8", "%xmm9", "%xmm10", "%xmm11",
-  "%xmm12", "%xmm13", "%xmm14", "%xmm15",
-  "%xmm16", "%xmm17", "%xmm18", "%xmm19",
-  "%xmm20", "%xmm21", "%xmm22", "%xmm23",
-  "%xmm24", "%xmm25", "%xmm26", "%xmm27",
-  "%xmm28", "%xmm29", "%xmm30", "%xmm31"
-};
-
-static const char **names_ymm;
-static const char *intel_names_ymm[] = {
-  "ymm0", "ymm1", "ymm2", "ymm3",
-  "ymm4", "ymm5", "ymm6", "ymm7",
-  "ymm8", "ymm9", "ymm10", "ymm11",
-  "ymm12", "ymm13", "ymm14", "ymm15",
-  "ymm16", "ymm17", "ymm18", "ymm19",
-  "ymm20", "ymm21", "ymm22", "ymm23",
-  "ymm24", "ymm25", "ymm26", "ymm27",
-  "ymm28", "ymm29", "ymm30", "ymm31"
-};
-static const char *att_names_ymm[] = {
-  "%ymm0", "%ymm1", "%ymm2", "%ymm3",
-  "%ymm4", "%ymm5", "%ymm6", "%ymm7",
-  "%ymm8", "%ymm9", "%ymm10", "%ymm11",
-  "%ymm12", "%ymm13", "%ymm14", "%ymm15",
-  "%ymm16", "%ymm17", "%ymm18", "%ymm19",
-  "%ymm20", "%ymm21", "%ymm22", "%ymm23",
-  "%ymm24", "%ymm25", "%ymm26", "%ymm27",
-  "%ymm28", "%ymm29", "%ymm30", "%ymm31"
-};
-
-static const char **names_zmm;
-static const char *intel_names_zmm[] = {
-  "zmm0", "zmm1", "zmm2", "zmm3",
-  "zmm4", "zmm5", "zmm6", "zmm7",
-  "zmm8", "zmm9", "zmm10", "zmm11",
-  "zmm12", "zmm13", "zmm14", "zmm15",
-  "zmm16", "zmm17", "zmm18", "zmm19",
-  "zmm20", "zmm21", "zmm22", "zmm23",
-  "zmm24", "zmm25", "zmm26", "zmm27",
-  "zmm28", "zmm29", "zmm30", "zmm31"
-};
-static const char *att_names_zmm[] = {
-  "%zmm0", "%zmm1", "%zmm2", "%zmm3",
-  "%zmm4", "%zmm5", "%zmm6", "%zmm7",
-  "%zmm8", "%zmm9", "%zmm10", "%zmm11",
-  "%zmm12", "%zmm13", "%zmm14", "%zmm15",
-  "%zmm16", "%zmm17", "%zmm18", "%zmm19",
-  "%zmm20", "%zmm21", "%zmm22", "%zmm23",
-  "%zmm24", "%zmm25", "%zmm26", "%zmm27",
-  "%zmm28", "%zmm29", "%zmm30", "%zmm31"
-};
-
-static const char **names_mask;
-static const char *intel_names_mask[] = {
-  "k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7"
-};
-static const char *att_names_mask[] = {
-  "%k0", "%k1", "%k2", "%k3", "%k4", "%k5", "%k6", "%k7"
-};
-
-static const char *names_rounding[] =
-{
-  "{rn-sae}",
-  "{rd-sae}",
-  "{ru-sae}",
-  "{rz-sae}"
-};
 
 static const struct dis386 reg_table[][8] = {
   /* REG_80 */
@@ -12957,12 +12992,14 @@ OP_IMREG (int code, int sizeflag)
 	s = names64[code - eAX_reg];
       else
 	{
-	  if (sizeflag & DFLAG)
+	  if (sizeflag & DFLAG) {
+			printf("error seg fault %s \n",names32[code - eAX_reg]);
 	    s = names32[code - eAX_reg];
-	  else
+	  } else {
 	    s = names16[code - eAX_reg];
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
+}
       break;
     case z_mode_ax_reg:
       if ((rex & REX_W) || (sizeflag & DFLAG))
@@ -15972,6 +16009,7 @@ ckprefix (void)
     {
       FETCH_DATA (the_info, codep + 1);
       newrex = 0;
+      printf("after casse couille bug \n");
       switch (*codep)
 	{
 	/* REX prefixes family.  */
@@ -16099,7 +16137,6 @@ void chiara_truex86 (unsigned char *instruction) {
 
 // si tojours pad de prix commencer le scan : 
 
- FETCH_DATA ((void*)0, codep + 1);
   two_source_ops = (*codep == 0x62) || (*codep == 0xc8);
 
   if (((prefixes & PREFIX_FWAIT)
@@ -16160,6 +16197,7 @@ void chiara_truex86 (unsigned char *instruction) {
       dp = get_valid_dis386 (dp, (void*)0);
       if (dp != NULL && putop (dp->name, sizeflag) == 0)
 	{
+		printf("opcode now, %x \n",*codep);
 	  get_sib ((void*)0, sizeflag);
 	  for (i = 0; i < MAX_OPERANDS; ++i)
 	    {
@@ -16356,5 +16394,6 @@ return;
 // tour
 	break;
       }
-	
+			printf("insn x86 name %s \n",dp->name);
+
 }

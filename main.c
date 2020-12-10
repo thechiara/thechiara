@@ -110,6 +110,28 @@ int status = 0;
 printf("Now call the iso module \n");
 chiara_init_iso(gaspard,end,argv[3]);
 }
+}else if(strcmp(argv[1],"-rawx86") == 0) {
+	if(argn <=2) {
+		printf("use this argument if you have a raw file contains x86 instructions \n");
+		return;
+		
+		}
+int file = open(argv[2],O_RDONLY);
+
+perror("raw x86 STATUS FILE \n");
+unsigned long long end = lseek(file,0,SEEK_END );
+	
+	lseek(file,0,SEEK_SET  ); // puyt on the begin
+	
+	// ici tester le fichier ELF ?iso ? raw
+unsigned  char  *gaspard = malloc(end);
+
+int size = 	read(file,gaspard,end);
+close(file);
+int status = 0;
+printf("Now call the raw module \n");
+chiara_emul_x86(gaspard,end);
+
 }
 while(1);
 	
@@ -118,5 +140,5 @@ while(1);
 
 
 
-
 }
+
