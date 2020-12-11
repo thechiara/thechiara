@@ -277,10 +277,7 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
       scale_char = ',';
       size_file_insn = size;
 	for(;statusarray<size;statusarray++,index_instruction++,codep++) {
-		printf("instruction after parser %x \n",codep[0]);
-		printf("instruction after parser %x \n",codep[1]);
 					chiara_truex86(codep);
-		printf("instruction after parser %x \n",*codep);
 
 		//~ struct insn_template * tmp  = chiara_lookup_opcode(instruction[statusarray]) ;
 		//~ if( tmp !=0) {
@@ -306,14 +303,14 @@ FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 {
 	
 	printf("FETCH CALL  addr : %x  and codep actual %x \n",addr,codep);
-	if(size_file_insn ==statusarray ) {
-		printf("x86 : OVER SIZE !!  call \n");
-		return 0;
-		} else {
-		codep = addr;
-statusarray++;
-index_instruction++;
-}
+	//~ if(size_file_insn ==statusarray ) {
+		//~ printf("x86 : OVER SIZE !!  call \n");
+		//~ return 0;
+		//~ } else {
+		//~ codep = addr;
+//~ statusarray++;
+//~ index_instruction++;
+//~ }
 	//~ // instruction_pointer 
 	//~ if(addr >= end_codep) {
 		//~ return 1;
@@ -11622,7 +11619,7 @@ dofloat (int sizeflag)
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
-
+statusarray++;
   dp = &float_reg[floatop - 0xd8][modrm.reg];
   if (dp->name == NULL)
     {
@@ -11818,6 +11815,7 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
 	  break;
 	}
       codep++;
+      statusarray++;
       vex.w = *codep & 0x80;
       if (vex.w && address_mode == mode_64bit)
 	rex |= REX_W;
@@ -11847,6 +11845,7 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
       need_vex = 1;
       need_vex_reg = 1;
       codep++;
+      statusarray++;
       vindex = *codep++;
       dp = &xop_table[vex_table_index][vindex];
 
@@ -11877,6 +11876,7 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
 	  break;
 	}
       codep++;
+      statusarray++;
       vex.w = *codep & 0x80;
       if (address_mode == mode_64bit)
 	{
@@ -11909,6 +11909,8 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
       need_vex = 1;
       need_vex_reg = 1;
       codep++;
+            statusarray++;
+
       vindex = *codep++;
       dp = &vex_table[vex_table_index][vindex];
       end_codep = codep;
@@ -11948,6 +11950,8 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
       need_vex = 1;
       need_vex_reg = 1;
       codep++;
+            statusarray++;
+
       vindex = *codep++;
       dp = &vex_table[dp->op[1].bytemode][vindex];
       end_codep = codep;
@@ -11993,6 +11997,8 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
 
       /* The second byte after 0x62.  */
       codep++;
+            statusarray++;
+
       vex.w = *codep & 0x80;
       if (vex.w && address_mode == mode_64bit)
 	rex |= REX_W;
@@ -12020,6 +12026,7 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
 
       /* The third byte after 0x62.  */
       codep++;
+      statusarray++;
 
       /* Remember the static rounding bits.  */
       vex.ll = (*codep >> 5) & 3;
@@ -12040,6 +12047,8 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
       need_vex = 1;
       need_vex_reg = 1;
       codep++;
+           statusarray++;
+ 
       vindex = *codep++;
       dp = &evex_table[vex_table_index][vindex];
       end_codep = codep;
@@ -12482,6 +12491,8 @@ OP_E_memory (int bytemode, int sizeflag)
 	  scale = sib.scale;
 	  base = sib.base;
 	  codep++;
+	        statusarray++;
+
 	}
       rbase = base + add;
 
@@ -12776,6 +12787,7 @@ OP_E (int bytemode, int sizeflag)
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+      statusarray++;
 
   if (modrm.mod == 3)
     OP_E_register (bytemode, sizeflag);
@@ -12891,6 +12903,8 @@ OP_Skip_MODRM (int bytemode  __attribute__((unused)),
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+        statusarray++;
+
 }
 static void
 OP_REG (int code, int sizeflag)
@@ -13399,6 +13413,8 @@ OP_R (int bytemode, int sizeflag)
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+        statusarray++;
+
   OP_E_register (bytemode, sizeflag);
 }
 static const char *const Suffix3DNow[] = {
@@ -13586,6 +13602,8 @@ OP_EM (int bytemode, int sizeflag)
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+        statusarray++;
+
   used_prefixes |= (prefixes & PREFIX_DATA);
   reg = modrm.rm;
   if (prefixes & PREFIX_DATA)
@@ -13622,6 +13640,8 @@ OP_EMC (int bytemode, int sizeflag)
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+        statusarray++;
+
   used_prefixes |= (prefixes & PREFIX_DATA);
   oappend (names_mm[modrm.rm]);
 }
@@ -13642,6 +13662,7 @@ OP_EX (int bytemode, int sizeflag)
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+      statusarray++;
 
   if (modrm.mod != 3)
     {
@@ -13903,6 +13924,8 @@ OP_Mwait (int bytemode, int sizeflag  __attribute__((unused)))
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+        statusarray++;
+
 }
 
 static void
@@ -13933,6 +13956,8 @@ OP_Monitor (int bytemode  __attribute__((unused)),
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+        statusarray++;
+
 }
 
 static void
@@ -14151,6 +14176,7 @@ CRC32_Fixup (int bytemode, int sizeflag)
       /* Skip mod/rm byte.  */
       MODRM_CHECK;
       codep++;
+      statusarray++;
 
       USED_REX (REX_B);
       add = (rex & REX_B) ? 8 : 0;
@@ -14450,6 +14476,7 @@ OP_EX_VexImmW (int bytemode, int sizeflag)
       /* Skip mod/rm byte.  */
       MODRM_CHECK;
       codep++;
+      statusarray++;
 
       vex_imm8 = get_vex_imm8 (sizeflag, 0);
 
@@ -14475,6 +14502,8 @@ OP_EX_VexImmW (int bytemode, int sizeflag)
       oappend_maybe_intel (scratchbuf);
       scratchbuf[0] = '\0';
       codep++;
+            statusarray++;
+
     }
 }
 
@@ -14509,6 +14538,8 @@ OP_Vex_2src_1 (int bytemode, int sizeflag)
       /* Skip mod/rm byte.   */
       MODRM_CHECK;
       codep++;
+            statusarray++;
+
     }
 
   if (vex.w)
@@ -14550,6 +14581,7 @@ OP_EX_VexW (int bytemode, int sizeflag)
       /* Skip mod/rm byte.  */
       MODRM_CHECK;
       codep++;
+      statusarray++;
 
       if (vex.w)
 	reg = get_vex_imm8 (sizeflag, 0) >> 4;
@@ -14564,6 +14596,8 @@ OP_EX_VexW (int bytemode, int sizeflag)
 
   if (vex_w_done)
     codep++;
+          statusarray++;
+
   vex_w_done = 1;
 }
 
@@ -14862,6 +14896,7 @@ OP_LWPCB_E (int bytemode  __attribute__((unused)), int sizeflag  __attribute__((
   /* Skip mod/rm byte.  */
   MODRM_CHECK;
   codep++;
+      statusarray++;
 
   if (rex & REX_W)
     names = names64;
@@ -16094,6 +16129,8 @@ ckprefix (void)
 	    {
 	      prefixes |= PREFIX_FWAIT;
 	      codep++;
+	            statusarray++;
+
 	      /* This ensures that the previous REX prefixes are noticed
 		 as unused prefixes, as in the return case below.  */
 	      rex_used = rex;
@@ -16114,6 +16151,8 @@ ckprefix (void)
 	all_prefixes[i++] = *codep;
       rex = newrex;
       codep++;
+            statusarray++;
+
       length++;
     }
   return 0;
@@ -16125,17 +16164,18 @@ void chiara_truex86 (unsigned char *instruction) {
   int sizeflag, orig_sizeflag,prefix_length,needcomma;
   int i;
   char *op_txt[MAX_OPERANDS];
-
+printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
 	// vérifier prefix 
 	
 	 if (!ckprefix () || rex_used)
     {
       /* Too many prefixes or unused REX prefixes.  */
-     
+
       return ;
     }
 
 // si tojours pad de prix commencer le scan : 
+     printf("x86 chiara_true x86 after one modif on codep %x \n",*codep);
 
   two_source_ops = (*codep == 0x62) || (*codep == 0xc8);
 
@@ -16151,17 +16191,23 @@ void chiara_truex86 (unsigned char *instruction) {
       unsigned char threebyte;
 
       codep++;
+            statusarray++;
+
       FETCH_DATA ((void*)0, codep + 1);
       threebyte = *codep;
       dp = &dis386_twobyte[threebyte];
       need_modrm = twobyte_has_modrm[*codep];
       codep++;
+            statusarray++;
+
     }
   else
     {
       dp = &dis386[*codep];
       need_modrm = onebyte_has_modrm[*codep];
       codep++;
+            statusarray++;
+
     }
 
   /* Save sizeflag for printing the extra prefixes later before updating
@@ -16197,7 +16243,6 @@ void chiara_truex86 (unsigned char *instruction) {
       dp = get_valid_dis386 (dp, (void*)0);
       if (dp != NULL && putop (dp->name, sizeflag) == 0)
 	{
-		printf("opcode now, %x \n",*codep);
 	  get_sib ((void*)0, sizeflag);
 	  for (i = 0; i < MAX_OPERANDS; ++i)
 	    {
@@ -16265,6 +16310,9 @@ void chiara_truex86 (unsigned char *instruction) {
      are all 0s in inverted form.  */
   if (need_vex && vex.register_specifier != 0)
     {
+					printf("insn x86 name %s \n",dp->name);
+
+		return ;
     }
 
   /* Check if the REX prefix is used.  */
@@ -16328,6 +16376,8 @@ return;
   /* Check maximum code length.  */
   if ((codep - start_codep) > MAX_CODE_LENGTH)
     {
+					printf("insn x86 name %s \n",dp->name);
+
       return MAX_CODE_LENGTH;
     }
 
