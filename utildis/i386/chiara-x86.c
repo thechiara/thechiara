@@ -247,7 +247,16 @@ static const char *names_rounding[] =
   "{ru-sae}",
   "{rz-sae}"
 };
-
+struct chiara_x86 {
+	
+	long GPR[2];
+	
+	int takedgpr; 
+	
+	long long x86data;
+	
+	};
+struct chiara_x86  chiara_x86	;
 
 void chiara_emul_x86(unsigned char *instruction,int size) {
 	start_codep = instruction;
@@ -302,7 +311,7 @@ static int
 FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 {
 	
-	printf("FETCH CALL  addr : %x  and codep actual %x \n",addr,codep);
+	//~ printf("FETCH CALL  addr : %x  and codep actual %x \n",addr,codep);
 	//~ if(size_file_insn ==statusarray ) {
 		//~ printf("x86 : OVER SIZE !!  call \n");
 		//~ return 0;
@@ -12806,21 +12815,32 @@ OP_G (int bytemode, int sizeflag)
     {
     case b_mode:
       USED_REX (0);
-      if (rex)
+      if (rex)  {
+    chiara_x86.GPR[chiara_x86.takedgpr] = modrm.reg + add;
+	chiara_x86.takedgpr++;
 	oappend (names8rex[modrm.reg + add]);
-      else
+     } else {
 	oappend (names8[modrm.reg + add]);
+	chiara_x86.GPR[chiara_x86.takedgpr] = modrm.reg + add;
+	chiara_x86.takedgpr++;
+  }
       break;
     case w_mode:
       oappend (names16[modrm.reg + add]);
+      	chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+	chiara_x86.takedgpr++;
       break;
     case d_mode:
     case db_mode:
     case dw_mode:
       oappend (names32[modrm.reg + add]);
+      chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+		chiara_x86.takedgpr++;
       break;
     case q_mode:
       oappend (names64[modrm.reg + add]);
+        chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.reg + add;
+		chiara_x86.takedgpr++;
       break;
     case bnd_mode:
       if (modrm.reg > 0x3)
@@ -12837,17 +12857,24 @@ OP_G (int bytemode, int sizeflag)
     case dqw_mode:
     case movsxd_mode:
       USED_REX (REX_W);
-      if (rex & REX_W)
+      if (rex & REX_W) {
 	oappend (names64[modrm.reg + add]);
-      else
+      chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.reg + add;
+		chiara_x86.takedgpr++;
+      }else
 	{
 	  if ((sizeflag & DFLAG)
-	      || (bytemode != v_mode && bytemode != movsxd_mode))
+	      || (bytemode != v_mode && bytemode != movsxd_mode)) {
 	    oappend (names32[modrm.reg + add]);
-	  else
+	    	   chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+		chiara_x86.takedgpr++;
+	 } else {
 	    oappend (names16[modrm.reg + add]);
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+modrm.reg + add;
+		chiara_x86.takedgpr++;
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
+}
       break;
     case va_mode:
       names = (address_mode == mode_64bit
@@ -12868,10 +12895,15 @@ OP_G (int bytemode, int sizeflag)
       oappend (names[modrm.reg + add]);
       break;
     case m_mode:
-      if (address_mode == mode_64bit)
+      if (address_mode == mode_64bit) {
 	oappend (names64[modrm.reg + add]);
-      else
+	chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.reg + add;
+		chiara_x86.takedgpr++;
+   }   else {
 	oappend (names32[modrm.reg + add]);
+		   chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+		chiara_x86.takedgpr++;
+      }
       break;
     case mask_bd_mode:
     case mask_mode:
@@ -12931,21 +12963,31 @@ OP_REG (int code, int sizeflag)
     case ax_reg: case cx_reg: case dx_reg: case bx_reg:
     case sp_reg: case bp_reg: case si_reg: case di_reg:
       s = names16[code - ax_reg + add];
+       chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - ax_reg + add;
+		chiara_x86.takedgpr++;
       break;
     case al_reg: case ah_reg: case cl_reg: case ch_reg:
     case dl_reg: case dh_reg: case bl_reg: case bh_reg:
       USED_REX (0);
-      if (rex)
+      if (rex) {
 	s = names8rex[code - al_reg + add];
-      else
+	chiara_x86.GPR[chiara_x86.takedgpr] = code - al_reg + add;
+	chiara_x86.takedgpr++;
+    }  else {
 	s = names8[code - al_reg];
+	chiara_x86.GPR[chiara_x86.takedgpr] = code - al_reg;
+	chiara_x86.takedgpr++;
+  }
       break;
+      
     case rAX_reg: case rCX_reg: case rDX_reg: case rBX_reg:
     case rSP_reg: case rBP_reg: case rSI_reg: case rDI_reg:
       if (address_mode == mode_64bit
 	  && ((sizeflag & DFLAG) || (rex & REX_W)))
 	{
 	  s = names64[code - rAX_reg + add];
+	  chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - rAX_reg + add;
+		chiara_x86.takedgpr++;
 	  break;
 	}
       code += eAX_reg - rAX_reg;
@@ -12953,16 +12995,23 @@ OP_REG (int code, int sizeflag)
     case eAX_reg: case eCX_reg: case eDX_reg: case eBX_reg:
     case eSP_reg: case eBP_reg: case eSI_reg: case eDI_reg:
       USED_REX (REX_W);
-      if (rex & REX_W)
+      if (rex & REX_W) {
 	s = names64[code - eAX_reg + add];
-      else
+     chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - eAX_reg + add;
+		chiara_x86.takedgpr++;
+     } else
 	{
-	  if (sizeflag & DFLAG)
+	  if (sizeflag & DFLAG) {
 	    s = names32[code - eAX_reg + add];
-	  else
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 15+code - eAX_reg + add;
+		chiara_x86.takedgpr++;
+	  } else {
 	    s = names16[code - eAX_reg + add];
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - eAX_reg + add;
+		chiara_x86.takedgpr++;
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
+}
       break;
     default:
       s = INTERNAL_DISASSEMBLER_ERROR;
@@ -12986,6 +13035,8 @@ OP_IMREG (int code, int sizeflag)
     case ax_reg: case cx_reg: case dx_reg: case bx_reg:
     case sp_reg: case bp_reg: case si_reg: case di_reg:
       s = names16[code - ax_reg];
+      chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - ax_reg;
+		chiara_x86.takedgpr++;
       break;
     case es_reg: case ss_reg: case cs_reg:
     case ds_reg: case fs_reg: case gs_reg:
@@ -12994,23 +13045,34 @@ OP_IMREG (int code, int sizeflag)
     case al_reg: case ah_reg: case cl_reg: case ch_reg:
     case dl_reg: case dh_reg: case bl_reg: case bh_reg:
       USED_REX (0);
-      if (rex)
+      if (rex) {
 	s = names8rex[code - al_reg];
-      else
+	chiara_x86.GPR[chiara_x86.takedgpr] = code - al_reg;
+chiara_x86.takedgpr++;
+     } else {
 	s = names8[code - al_reg];
+	chiara_x86.GPR[chiara_x86.takedgpr] = code - al_reg;
+chiara_x86.takedgpr++;
+  }
       break;
     case eAX_reg: case eCX_reg: case eDX_reg: case eBX_reg:
     case eSP_reg: case eBP_reg: case eSI_reg: case eDI_reg:
       USED_REX (REX_W);
-      if (rex & REX_W)
+      if (rex & REX_W) {
 	s = names64[code - eAX_reg];
-      else
+    chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - eAX_reg;
+chiara_x86.takedgpr++;
+     } else
 	{
 	  if (sizeflag & DFLAG) {
 			printf("error seg fault %s \n",names32[code - eAX_reg]);
 	    s = names32[code - eAX_reg];
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 15+ code - eAX_reg;
+chiara_x86.takedgpr++;
 	  } else {
 	    s = names16[code - eAX_reg];
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - eAX_reg;
+		chiara_x86.takedgpr++;
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
 }
@@ -13298,18 +13360,28 @@ ptr_reg (int code, int sizeflag)
   used_prefixes |= (prefixes & PREFIX_ADDR);
   if (address_mode == mode_64bit)
     {
-      if (!(sizeflag & AFLAG))
+      if (!(sizeflag & AFLAG)) {
 	s = names32[code - eAX_reg];
-      else
+	 chiara_x86.GPR[chiara_x86.takedgpr] = 15+code - eAX_reg;
+		chiara_x86.takedgpr++;
+      }else {
 	s = names64[code - eAX_reg];
+	 chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - eAX_reg;
+		chiara_x86.takedgpr++;
     }
-  else if (sizeflag & AFLAG)
+}
+  else if (sizeflag & AFLAG) {
     s = names32[code - eAX_reg];
-  else
+      chiara_x86.GPR[chiara_x86.takedgpr] = 15+code - eAX_reg;
+		chiara_x86.takedgpr++;
+   } else {
     s = names16[code - eAX_reg];
+    chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - eAX_reg;
+		chiara_x86.takedgpr++;
   oappend (s);
   *obufp++ = close_char;
   *obufp = 0;
+}
 }
 
 static void
@@ -14183,21 +14255,33 @@ CRC32_Fixup (int bytemode, int sizeflag)
       if (bytemode == b_mode)
 	{
 	  USED_REX (0);
-	  if (rex)
+	  if (rex) {
 	    oappend (names8rex[modrm.rm + add]);
-	  else
+	    chiara_x86.GPR[chiara_x86.takedgpr] = modrm.rm + add;
+chiara_x86.takedgpr++;
+	  }else {
 	    oappend (names8[modrm.rm + add]);
+	     chiara_x86.GPR[chiara_x86.takedgpr] = modrm.rm + add;
+chiara_x86.takedgpr++;
 	}
+}
       else
 	{
 	  USED_REX (REX_W);
-	  if (rex & REX_W)
+	  if (rex & REX_W) {
 	    oappend (names64[modrm.rm + add]);
-	  else if ((prefixes & PREFIX_DATA))
+	     chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.rm + add;
+		chiara_x86.takedgpr++;
+	  } else if ((prefixes & PREFIX_DATA)) {
 	    oappend (names16[modrm.rm + add]);
-	  else
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+modrm.rm + add;
+		chiara_x86.takedgpr++;
+	   } else {
+		   chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.rm + add;
+		chiara_x86.takedgpr++;
 	    oappend (names32[modrm.rm + add]);
 	}
+}
     }
   else
     OP_E (bytemode, sizeflag);
@@ -14335,7 +14419,7 @@ OP_VEX (int bytemode, int sizeflag  __attribute__((unused)))
   oappend (names[reg]);
 }
 
-/* Get the VEX immediate byte without moving codep.  */
+/* Get the VEX immediate byte without moving codep. chiara immediate here ?  */
 
 static unsigned char
 get_vex_imm8 (int sizeflag, int opnum)
@@ -16166,7 +16250,11 @@ void chiara_truex86 (unsigned char *instruction) {
   char *op_txt[MAX_OPERANDS];
 printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
 	// vérifier prefix 
-	
+	chiara_x86.GPR[0] = 0;
+	chiara_x86.GPR[1] = 0;
+	chiara_x86.GPR[2] = 0;
+	chiara_x86.x86data = 0;
+	chiara_x86.takedgpr = 0;
 	 if (!ckprefix () || rex_used)
     {
       /* Too many prefixes or unused REX prefixes.  */
@@ -16252,19 +16340,22 @@ printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
 		(*dp->op[i].rtn) (dp->op[i].bytemode, sizeflag);
 	      /* For EVEX instruction after the last operand masking
 		 should be printed.  */
+		 printf("tour opérande ? \n");
 	      if (i == 0 && vex.evex)
 		{
 		  /* Don't print {%k0}.  */
 		  if (vex.mask_register_specifier)
 		    {
-		      oappend ("{");
-		      oappend (names_mask[vex.mask_register_specifier]);
-		      oappend ("}");
+		      printf ("{");
+		      printf ("%x",names_mask[vex.mask_register_specifier]);
+		      printf ("}");
 		    }
 		  if (vex.zeroing)
-		    oappend ("{z}");
+		    printf ("{z}");
 		}
 	    }
+	    
+	    // call chiara ?
 	}
     }
 
@@ -16310,7 +16401,7 @@ printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
      are all 0s in inverted form.  */
   if (need_vex && vex.register_specifier != 0)
     {
-					printf("insn x86 name %s \n",dp->name);
+					printf("insn x86 name %s line need_vex\n",dp->name);
 
 		return ;
     }
@@ -16346,6 +16437,7 @@ printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
 	if (name == NULL)
 	  abort ();
 	prefix_length += strlen (name) + 1;
+	printf("prefx name %x \n",name);
       }
 
   /* If the mandatory PREFIX_REPZ/PREFIX_REPNZ/PREFIX_DATA prefix is
@@ -16376,7 +16468,14 @@ return;
   /* Check maximum code length.  */
   if ((codep - start_codep) > MAX_CODE_LENGTH)
     {
-					printf("insn x86 name %s \n",dp->name);
+					printf("insn x86 name max code length stop %s \n",dp->name);
+if(*dp->to_chiara_gpr) {
+	
+	printf("x86 is calling chiara \n");
+	dp->to_chiara_gpr(chiara_x86.GPR[0],chiara_x86.GPR[1],chiara_x86.GPR[2],dp->gpraction,X86_IMAGE,chiara_x86.x86data);
+
+
+	}
 
       return MAX_CODE_LENGTH;
     }
@@ -16411,6 +16510,13 @@ return;
 	  op_riprel[i] = op_riprel [MAX_OPERANDS - 1 - i];
 	  op_riprel[MAX_OPERANDS - 1 - i] = riprel;
 	}
+if(*dp->to_chiara_gpr) {
+	
+	printf("x86 is calling chiara \n");
+	
+	
+	}
+
     }
   else
     {
@@ -16444,6 +16550,7 @@ return;
 // tour
 	break;
       }
+// call chiara here ? 
 			printf("insn x86 name %s \n",dp->name);
 
 }
