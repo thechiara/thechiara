@@ -11,8 +11,8 @@ struct disassemble_info {
 	
 	};
 typedef long bfd_signed_vma; 
-
-
+# define PRIi64 "li"
+#define VERIFIER(x) 0
 /* Instruction fields.
    Keep synced with fields.  */
 enum aarch64_field_kind
@@ -182,7 +182,7 @@ typedef struct aarch64_operand aarch64_operand;
 extern const aarch64_operand aarch64_operands[];
 
 enum err_type
-verify_constraints (const struct aarch64_inst *, const aarch64_insn, bfd_vma,
+verify_constraints (const struct aarch64_inst *, const aarch64_insn, unsigned long,
 		    int, aarch64_operand_error *, aarch64_instr_sequence*);
 
 /* Operand flags.  */
@@ -475,9 +475,9 @@ enum aarch64_modifier_kind
 aarch64_get_operand_modifier_from_value (aarch64_insn, int);
 
 
-int aarch64_wide_constant_p (uint64_t, int, unsigned int *);
-int aarch64_logical_immediate_p (uint64_t, int, aarch64_insn *);
-int aarch64_shrink_expanded_imm8 (uint64_t);
+int aarch64_wide_constant_p (unsigned long long, int, unsigned int *);
+int aarch64_logical_immediate_p (unsigned long long, int, aarch64_insn *);
+int aarch64_shrink_expanded_imm8 (unsigned long long);
 
 /* Copy the content of INST->OPERANDS[SRC] to INST->OPERANDS[DST].  */
 static inline void
@@ -517,7 +517,7 @@ get_logsz (unsigned int size)
 
    N.B. all alias opcodes are ignored here.  */
 
-const aarch64_opcode* aarch64_opcode_lookup (uint32_t);
+const aarch64_opcode* aarch64_opcode_lookup (unsigned long);
 const aarch64_opcode* aarch64_find_next_opcode (const aarch64_opcode *);
 
 /* Given OPCODE, return its alias, e.g. given UBFM, return LSL.

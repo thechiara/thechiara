@@ -33,7 +33,7 @@ extern "C" {
 /* The offset for pc-relative addressing is currently defined to be 0.  */
 #define AARCH64_PCREL_OFFSET		0
 
-typedef uint32_t aarch64_insn;
+typedef unsigned long aarch64_insn;
 
 /* The following bitmasks control CPU features.  */
 #define AARCH64_FEATURE_V8	     (1ULL << 0) /* All processors.  */
@@ -735,14 +735,14 @@ typedef aarch64_opnd_qualifier_t	\
 	  aarch64_opnd_qualifier_seq_t [AARCH64_MAX_OPND_NUM];
 
 /* FIXME: improve the efficiency.  */
-static inline bfd_boolean
+static inline int
 empty_qualifier_sequence_p (const aarch64_opnd_qualifier_t *qualifiers)
 {
   int i;
   for (i = 0; i < AARCH64_MAX_OPND_NUM; ++i)
     if (qualifiers[i] != AARCH64_OPND_QLF_NIL)
-      return FALSE;
-  return TRUE;
+      return 0;
+  return 1;
 }
 
 /*  Forward declare error reporting type.  */
@@ -790,10 +790,10 @@ struct aarch64_opcode
   aarch64_opnd_qualifier_seq_t qualifiers_list[AARCH64_MAX_QLF_SEQ_NUM];
 
   /* Flags providing information about this instruction */
-  uint64_t flags;
+  unsigned long long flags;
 
   /* Extra constraints on the instruction that the verifier checks.  */
-  uint32_t constraints;
+  unsigned long constraints;
 
   /* If nonzero, this operand and operand 0 are both registers and
      are required to have the same register number.  */
@@ -801,7 +801,7 @@ struct aarch64_opcode
 
   /* If non-NULL, a function to verify that a given instruction is valid.  */
   enum err_type (* verifier) (const struct aarch64_inst *, const aarch64_insn,
-			      bfd_vma, bfd_boolean, aarch64_operand_error *,
+			      unsigned long , int, aarch64_operand_error *,
 			      struct aarch64_instr_sequence *); // bug bfd
 };
 
@@ -879,16 +879,16 @@ extern aarch64_opcode aarch64_opcode_table[];
 #define C_MAX_ELEM (1U << 1)
 /* Next bit is 2.  */
 
-static inline bfd_boolean
+static inline int
 alias_opcode_p (const aarch64_opcode *opcode)
 {
-  return (opcode->flags & F_ALIAS) ? TRUE : FALSE;
+  return (opcode->flags & F_ALIAS) ? 1 : 0;
 }
 
-static inline bfd_boolean
+static inline int
 opcode_has_alias (const aarch64_opcode *opcode)
 {
-  return (opcode->flags & F_HAS_ALIAS) ? TRUE : FALSE;
+  return (opcode->flags & F_HAS_ALIAS) ? 1 : 0;
 }
 
 /* Priority for disassembling preference.  */
@@ -898,17 +898,17 @@ opcode_priority (const aarch64_opcode *opcode)
   return (opcode->flags >> 2) & 0x3;
 }
 
-static inline bfd_boolean
+static inline int
 pseudo_opcode_p (const aarch64_opcode *opcode)
 {
-  return (opcode->flags & F_PSEUDO) != 0lu ? TRUE : FALSE;
+  return (opcode->flags & F_PSEUDO) != 0lu ? 1 : 0;
 }
 
-static inline bfd_boolean
+static inline int
 optional_operand_p (const aarch64_opcode *opcode, unsigned int idx)
 {
   return (((opcode->flags >> 12) & 0x7) == idx + 1)
-    ? TRUE : FALSE;
+    ? 1 : 0;
 }
 
 static inline aarch64_insn
@@ -923,12 +923,12 @@ get_opcode_dependent_value (const aarch64_opcode *opcode)
   return (opcode->flags >> 24) & 0x7;
 }
 
-static inline bfd_boolean
+static inline int
 opcode_has_special_coder (const aarch64_opcode *opcode)
 {
   return (opcode->flags & (F_SF | F_LSE_SZ | F_SIZEQ | F_FPTYPE | F_SSIZE | F_T
-	  | F_GPRSIZE_IN_Q | F_LDS_SIZE | F_MISC | F_N | F_COND)) ? TRUE
-    : FALSE;
+	  | F_GPRSIZE_IN_Q | F_LDS_SIZE | F_MISC | F_N | F_COND)) ? 1
+    : 0;
 }
 
 struct aarch64_name_value_pair
@@ -946,7 +946,7 @@ typedef struct
 {
   const char *  name;
   aarch64_insn	value;
-  uint32_t	flags;
+  unsigned long	flags;
 
   /* A set of features, all of which are required for this system register to be
      available.  */
@@ -955,21 +955,21 @@ typedef struct
 
 extern const aarch64_sys_reg aarch64_sys_regs [];
 extern const aarch64_sys_reg aarch64_pstatefields [];
-extern bfd_boolean aarch64_sys_reg_deprecated_p (const aarch64_sys_reg *);
-extern bfd_boolean aarch64_sys_reg_supported_p (const aarch64_feature_set,
+extern int aarch64_sys_reg_deprecated_p (const aarch64_sys_reg *);
+extern int aarch64_sys_reg_supported_p (const aarch64_feature_set,
 						const aarch64_sys_reg *);
-extern bfd_boolean aarch64_pstatefield_supported_p (const aarch64_feature_set,
+extern int aarch64_pstatefield_supported_p (const aarch64_feature_set,
 						    const aarch64_sys_reg *);
 
 typedef struct
 {
   const char *name;
-  uint32_t value;
-  uint32_t flags ;
+  unsigned long value;
+  unsigned long flags ;
 } aarch64_sys_ins_reg;
 
-extern bfd_boolean aarch64_sys_ins_reg_has_xt (const aarch64_sys_ins_reg *);
-extern bfd_boolean
+extern int aarch64_sys_ins_reg_has_xt (const aarch64_sys_ins_reg *);
+extern int
 aarch64_sys_ins_reg_supported_p (const aarch64_feature_set,
 				 const aarch64_sys_ins_reg *);
 
@@ -1001,7 +1001,7 @@ enum aarch64_modifier_kind
   AARCH64_MOD_MUL_VL,
 };
 
-bfd_boolean
+int
 aarch64_extend_operator_p (enum aarch64_modifier_kind);
 
 enum aarch64_modifier_kind
@@ -1081,7 +1081,7 @@ struct aarch64_opnd_info
 	  aarch64_insn value;
 
 	  /* The system register flags.  */
-	  uint32_t flags;
+	  unsigned long flags;
 	} sysreg;
 
       const aarch64_cond *cond;
@@ -1224,7 +1224,7 @@ struct aarch64_operand_error
   int index;
   const char *error;
   int data[3];	/* Some data for extra information.  */
-  bfd_boolean non_fatal;
+  int non_fatal;
 };
 
 /* AArch64 sequence structure used to track instructions with F_SCAN
@@ -1261,8 +1261,8 @@ aarch64_get_opcode (enum aarch64_op);
 
 /* Generate the string representation of an operand.  */
 extern void
-aarch64_print_operand (char *, size_t, bfd_vma, const aarch64_opcode *,
-		       const aarch64_opnd_info *, int, int *, bfd_vma *,
+aarch64_print_operand (char *, size_t, unsigned long, const aarch64_opcode *,
+		       const aarch64_opnd_info *, int, int *, unsigned long *,
 		       char **);
 
 /* Miscellaneous interface.  */
@@ -1274,7 +1274,7 @@ extern aarch64_opnd_qualifier_t
 aarch64_get_expected_qualifier (const aarch64_opnd_qualifier_seq_t *, int,
 				const aarch64_opnd_qualifier_t, int);
 
-extern bfd_boolean
+extern int
 aarch64_is_destructive_by_operands (const aarch64_opcode *);
 
 extern int
@@ -1287,7 +1287,7 @@ extern int
 aarch64_zero_register_p (const aarch64_opnd_info *);
 
 extern enum err_type
-aarch64_decode_insn (aarch64_insn, aarch64_inst *, bfd_boolean,
+aarch64_decode_insn (aarch64_insn, aarch64_inst *, int,
 		     aarch64_operand_error *);
 
 extern void
@@ -1307,8 +1307,8 @@ aarch64_get_operand_name (enum aarch64_opnd);
 extern const char *
 aarch64_get_operand_desc (enum aarch64_opnd);
 
-extern bfd_boolean
-aarch64_sve_dupm_mov_immediate_p (uint64_t, int);
+extern int
+aarch64_sve_dupm_mov_immediate_p (unsigned long long, int);
 
 #ifdef DEBUG_AARCH64
 extern int debug_dump;
