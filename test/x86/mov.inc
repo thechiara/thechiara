@@ -1,1 +1,1 @@
-mov al,45
+mov ebx,0xff

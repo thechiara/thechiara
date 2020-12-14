@@ -44,6 +44,8 @@ unsigned long useof32bitsreg; // for example if bits zero is set the register32[
 unsigned long useof64bitsreg; // for example if bits zero is set the register64[0] contain data	
 	
 };	
+
+//typedef __attribute__((unused))  ATTRIBUTE_UNUSED
 struct chiara_compute_global {
 	 long long register64[31];
 	 long register32[31];

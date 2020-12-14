@@ -286,6 +286,7 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
       scale_char = ',';
       size_file_insn = size;
 	for(;statusarray<size;statusarray++,index_instruction++,codep++) {
+					//~ while(end_codep!=codep) {
 					chiara_truex86(codep);
 
 		//~ struct insn_template * tmp  = chiara_lookup_opcode(instruction[statusarray]) ;
@@ -303,13 +304,23 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 			//~ }
 		
 		}
-	
+			printf("start codepx86 pointer %d \n",start_codep);
+
+	printf("end codepx86 pointer %d \n",codep);
+	printf("size  %d \n",size);
 }
 
 
 static int
 FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 {
+	
+	
+	if(addr >= end_codep) {
+		printf("X86 OUT OF RANGE \n");
+		return 1;
+		
+		}
 	
 	//~ printf("FETCH CALL  addr : %x  and codep actual %x \n",addr,codep);
 	//~ if(size_file_insn ==statusarray ) {
@@ -328,7 +339,7 @@ FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 	//~ index_instruction++;
 	//~ codep++;
 //~ }
-  //~ return 0;
+  return 0;
 }
 
 static void dofloat (int);
@@ -11433,7 +11444,7 @@ get32s (void)
   x |= (*codep++ & (bfd_signed_vma) 0xff) << 24;
 
   x = (x ^ ((bfd_signed_vma) 1 << 31)) - ((bfd_signed_vma) 1 << 31);
-
+statusarray = statusarray +3 ;
   return x;
 }
 static bfd_signed_vma
@@ -11446,6 +11457,8 @@ get32 (void)
   x |= (*codep++ & (bfd_signed_vma) 0xff) << 8;
   x |= (*codep++ & (bfd_signed_vma) 0xff) << 16;
   x |= (*codep++ & (bfd_signed_vma) 0xff) << 24;
+  statusarray = statusarray +3 ;
+
   return x;
 }
 static void
@@ -11557,9 +11570,9 @@ print_operand_value (char *buf, int hex, unsigned long disp)
   else
     {
       if (hex)
-	sprintf (buf, "0x%x", (unsigned int) disp);
+	printf ("", "0x%x", (unsigned int) disp);
       else
-	sprintf (buf, "%d", (int) disp);
+	printf ("", "%d", (int) disp);
     }
 }
 
@@ -11585,6 +11598,8 @@ get64 (void)
   abort ();
   x = 0;
 #endif
+statusarray = statusarray +8 ;
+
   return x;
 }
 static void
@@ -11758,6 +11773,7 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
       modrm.mod = (*codep >> 6) & 3;
       modrm.reg = (*codep >> 3) & 7;
       modrm.rm = *codep & 7;
+      statusarray++;
       break;
 
     case USE_VEX_LEN_TABLE:
@@ -11857,7 +11873,7 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
       statusarray++;
       vindex = *codep++;
       dp = &xop_table[vex_table_index][vindex];
-
+		statusarray++;
       end_codep = codep;
       FETCH_DATA (info, codep + 1);
       modrm.mod = (*codep >> 6) & 3;
@@ -11923,6 +11939,7 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
       vindex = *codep++;
       dp = &vex_table[vex_table_index][vindex];
       end_codep = codep;
+      statusarray++;
       /* There is no MODRM byte for VEX0F 77.  */
       if (vex_table_index != VEX_0F || vindex != 0x77)
 	{
@@ -11962,6 +11979,8 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
             statusarray++;
 
       vindex = *codep++;
+                  statusarray++;
+
       dp = &vex_table[dp->op[1].bytemode][vindex];
       end_codep = codep;
       /* There is no MODRM byte for VEX 77.  */
@@ -12059,6 +12078,8 @@ get_valid_dis386 (const struct dis386 *dp, void *info)
            statusarray++;
  
       vindex = *codep++;
+                  statusarray++;
+
       dp = &evex_table[vex_table_index][vindex];
       end_codep = codep;
       FETCH_DATA (info, codep + 1);
@@ -12524,6 +12545,8 @@ OP_E_memory (int bytemode, int sizeflag)
 	case 1:
 	  FETCH_DATA (the_info, codep + 1);
 	  disp = *codep++;
+	              statusarray++;
+
 	  if ((disp & 0x80) != 0)
 	    disp -= 0x100;
 	  if (vex.evex && shift > 0)
@@ -12690,6 +12713,8 @@ OP_E_memory (int bytemode, int sizeflag)
 	case 1:
 	  FETCH_DATA (the_info, codep + 1);
 	  disp = *codep++;
+	   statusarray++;
+
 	  if ((disp & 0x80) != 0)
 	    disp -= 0x100;
 	  if (vex.evex && shift > 0)
@@ -12926,6 +12951,9 @@ get16 (void)
   FETCH_DATA (the_info, codep + 2);
   x = *codep++ & 0xff;
   x |= (*codep++ & 0xff) << 8;
+              statusarray++;
+            statusarray++;
+
   return x;
 }
 static void
@@ -13103,6 +13131,9 @@ OP_I (int bytemode, int sizeflag)
       FETCH_DATA (the_info, codep + 1);
       op = *codep++;
       mask = 0xff;
+                  statusarray++;
+      printf("codep x86 %d  \n",(unsigned char)op);
+
       break;
     case v_mode:
       USED_REX (REX_W);
@@ -13141,10 +13172,13 @@ OP_I (int bytemode, int sizeflag)
     }
 
   op &= mask;
+    printf("op x86 after mask  %d \n",op);
+
   scratchbuf[0] = '$';
   print_operand_value (scratchbuf + 1, 1, op);
   oappend_maybe_intel (scratchbuf);
   scratchbuf[0] = '\0';
+  chiara_x86.x86data = op;
 }
 static void
 OP_I64 (int bytemode, int sizeflag)
@@ -13158,9 +13192,12 @@ OP_I64 (int bytemode, int sizeflag)
   USED_REX (REX_W);
 
   scratchbuf[0] = '$';
-  print_operand_value (scratchbuf + 1, 1, get64 ());
+  long long dataocp = get64 ();
+  print_operand_value (scratchbuf + 1, 1,dataocp);
   oappend_maybe_intel (scratchbuf);
   scratchbuf[0] = '\0';
+    chiara_x86.x86data = dataocp;
+
 }
 static void
 OP_sI (int bytemode, int sizeflag)
@@ -13173,6 +13210,8 @@ OP_sI (int bytemode, int sizeflag)
     case b_T_mode:
       FETCH_DATA (the_info, codep + 1);
       op = *codep++;
+                  statusarray++;
+
       if ((op & 0x80) != 0)
 	op -= 0x100;
       if (bytemode == b_T_mode)
@@ -13213,6 +13252,8 @@ OP_sI (int bytemode, int sizeflag)
   scratchbuf[0] = '$';
   print_operand_value (scratchbuf + 1, 1, op);
   oappend_maybe_intel (scratchbuf);
+      chiara_x86.x86data = op;
+
 }
 static void
 OP_J (int bytemode, int sizeflag)
@@ -13226,6 +13267,8 @@ OP_J (int bytemode, int sizeflag)
     case b_mode:
       FETCH_DATA (the_info, codep + 1);
       disp = *codep++;
+                  statusarray++;
+
       if ((disp & 0x80) != 0)
 	disp -= 0x100;
       break;
@@ -13264,6 +13307,8 @@ OP_J (int bytemode, int sizeflag)
   set_op (disp, 0);
   print_operand_value (scratchbuf, 1, disp);
   oappend (scratchbuf);
+        chiara_x86.x86data = disp;
+
 }
 static void
 OP_SEG (int bytemode, int sizeflag)
@@ -13940,6 +13985,8 @@ OP_3DNowSuffix (int bytemode  __attribute__((unused)), int sizeflag  __attribute
      byte of the instruction.  */
   obufp = mnemonicendp;
   mnemonic = Suffix3DNow[*codep++ & 0xff];
+              statusarray++;
+
   if (mnemonic)
     oappend (mnemonic);
   else
@@ -13961,6 +14008,8 @@ CMP_Fixup (int bytemode  __attribute__((unused)), int sizeflag  __attribute__((u
 
   FETCH_DATA (the_info, codep + 1);
   cmp_type = *codep++ & 0xff;
+              statusarray++;
+
   if (cmp_type < ARRAY_SIZE (simd_cmp_op))
     {
       char suffix [3];
@@ -14424,6 +14473,7 @@ OP_VEX (int bytemode, int sizeflag  __attribute__((unused)))
 static unsigned char
 get_vex_imm8 (int sizeflag, int opnum)
 {
+	printf("chiara immediate x86 ? \n");
   int bytes_before_imm = 0;
 
   if (modrm.mod != 3)
@@ -14693,6 +14743,7 @@ OP_REG_VexI4 (int bytemode, int sizeflag  __attribute__((unused)))
 
   FETCH_DATA (the_info, codep + 1);
   reg = *codep++;
+            statusarray++;
 
   if (bytemode != x_mode)
     abort ();
@@ -14746,6 +14797,8 @@ VCMP_Fixup (int bytemode  __attribute__((unused)), int sizeflag  __attribute__((
 
   FETCH_DATA (the_info, codep + 1);
   cmp_type = *codep++ & 0xff;
+              statusarray++;
+
   if (cmp_type < ARRAY_SIZE (vex_cmp_op))
     {
       char suffix [3];
@@ -14777,6 +14830,8 @@ VPCMP_Fixup (int bytemode  __attribute__((unused)),
 
   FETCH_DATA (the_info, codep + 1);
   cmp_type = *codep++ & 0xff;
+              statusarray++;
+
   /* There are aliases for immediates 0, 1, 2, 4, 5, 6.
      If it's the case, print suffix, otherwise - print the immediate.  */
   if (cmp_type < ARRAY_SIZE (simd_cmp_op)
@@ -14823,6 +14878,8 @@ VPCOM_Fixup (int bytemode  __attribute__((unused)),
 
   FETCH_DATA (the_info, codep + 1);
   cmp_type = *codep++ & 0xff;
+              statusarray++;
+
   if (cmp_type < ARRAY_SIZE (xop_cmp_op))
     {
       char suffix[3];
@@ -14862,6 +14919,8 @@ PCLMUL_Fixup (int bytemode  __attribute__((unused)),
 
   FETCH_DATA (the_info, codep + 1);
   pclmul_type = *codep++ & 0xff;
+              statusarray++;
+
   switch (pclmul_type)
     {
     case 0x10:
@@ -16128,7 +16187,6 @@ ckprefix (void)
     {
       FETCH_DATA (the_info, codep + 1);
       newrex = 0;
-      printf("after casse couille bug \n");
       switch (*codep)
 	{
 	/* REX prefixes family.  */
@@ -16248,8 +16306,8 @@ void chiara_truex86 (unsigned char *instruction) {
   int sizeflag, orig_sizeflag,prefix_length,needcomma;
   int i;
   char *op_txt[MAX_OPERANDS];
-printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
 	// vérifier prefix 
+	printf("codep begin after scan %x and codep %x and codep where %d  \n",*instruction,*codep,codep);
 	chiara_x86.GPR[0] = 0;
 	chiara_x86.GPR[1] = 0;
 	chiara_x86.GPR[2] = 0;
@@ -16263,7 +16321,6 @@ printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
     }
 
 // si tojours pad de prix commencer le scan : 
-     printf("x86 chiara_true x86 after one modif on codep %x \n",*codep);
 
   two_source_ops = (*codep == 0x62) || (*codep == 0xc8);
 
@@ -16336,11 +16393,12 @@ printf("x86 chiara_true x86 after any modif on codep %x \n",*codep);
 	    {
 	      obufp = op_out[i];
 	      op_ad = MAX_OPERANDS - 1 - i;
+	      printf("codep %d \n",*codep);
+	      printf("codep pointer %d \n",codep);
 	      if (dp->op[i].rtn)
 		(*dp->op[i].rtn) (dp->op[i].bytemode, sizeflag);
 	      /* For EVEX instruction after the last operand masking
 		 should be printed.  */
-		 printf("tour opérande ? \n");
 	      if (i == 0 && vex.evex)
 		{
 		  /* Don't print {%k0}.  */
@@ -16473,7 +16531,7 @@ if(*dp->to_chiara_gpr) {
 	
 	printf("x86 is calling chiara \n");
 	dp->to_chiara_gpr(chiara_x86.GPR[0],chiara_x86.GPR[1],chiara_x86.GPR[2],dp->gpraction,X86_IMAGE,chiara_x86.x86data);
-
+printf("value gpr 0 %d \n",chiara_x86.GPR[0]);
 
 	}
 
@@ -16551,6 +16609,15 @@ if(*dp->to_chiara_gpr) {
 	break;
       }
 // call chiara here ? 
-			printf("insn x86 name %s \n",dp->name);
+if(*dp->to_chiara_gpr) {
+				printf("insn x86 name %s \n",dp->name);
 
+	dp->to_chiara_gpr(chiara_x86.GPR[0],chiara_x86.GPR[1],chiara_x86.GPR[2],dp->gpraction,X86_IMAGE,chiara_x86.x86data);
+
+printf("x86_data %d \n",chiara_x86.x86data);
+printf("value gpr 0 %d \n",chiara_x86.GPR[0]);
+printf("value gpr 1 %d \n",chiara_x86.GPR[1]);
+printf("value gpr 2 %d \n",chiara_x86.GPR[2]);
+
+	}
 }

@@ -22,8 +22,7 @@
 #ifndef OPCODE_AARCH64_H
 #define OPCODE_AARCH64_H
 
-#include "bfd.h"
-#include "bfd_stdint.h"
+
 #include <assert.h>
 #include <stdlib.h>
 
@@ -803,7 +802,7 @@ struct aarch64_opcode
   /* If non-NULL, a function to verify that a given instruction is valid.  */
   enum err_type (* verifier) (const struct aarch64_inst *, const aarch64_insn,
 			      bfd_vma, bfd_boolean, aarch64_operand_error *,
-			      struct aarch64_instr_sequence *);
+			      struct aarch64_instr_sequence *); // bug bfd
 };
 
 typedef struct aarch64_opcode aarch64_opcode;
