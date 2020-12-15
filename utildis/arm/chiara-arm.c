@@ -9,6 +9,25 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#define XALLOCA(T)		((T *) alloca (sizeof (T)))
+#define XNEW(T)			((T *) malloc (sizeof (T)))
+ #define XCNEW(T)		((T *) calloc (1, sizeof (T)))
+ #define XDUP(T, P)		((T *) memdup ((P), sizeof (T), sizeof (T)))
+   #define XDELETE(P)		free ((void*) (P))
+
+
+#define XALLOCAVEC(T, N)	((T *) alloca (sizeof (T) * (N)))
+#define XNEWVEC(T, N)		((T *) malloc (sizeof (T) * (N)))
+#define XCNEWVEC(T, N)		((T *) calloc ((N), sizeof (T)))
+#define XDUPVEC(T, P, N)	((T *) memdup ((P), sizeof (T) * (N), sizeof (T) * (N)))
+#define XRESIZEVEC(T, P, N)	((T *) realloc ((void *) (P), sizeof (T) * (N)))
+#define XDELETEVEC(P)		free ((void*) (P))
+
+static _(const char*string) {
+	
+	
+return string;	
+}
 
 static int
 aarch64_opcode_lookup_1 (unsigned long  word)
@@ -24341,7 +24360,7 @@ aarch64_logical_immediate_p (unsigned long long value, int esize, aarch64_insn *
   int i;
 
   //~ DEBUG_TRACE ("enter with 0x%" PRIx64 "(%" PRIi64 "), esize: %d", value,
-	       value, esize);
+	       //~ value, esize);
 
   if (!initialized)
     {
@@ -26542,8 +26561,9 @@ aarch64_print_operand (char *buf, size_t size, unsigned long pc,
 	    }
 	  break;
 	case 8:	/* e.g. MOV Xd, #<imm64>.  */
-	  snprintf (buf, size, "#0x%-20" PRIx64 "\t// #%" PRIi64,
-		    opnd->imm.value, opnd->imm.value);
+	  //~ snprintf (buf, size, "#0x%-20" PRIx64 "\t// #%" PRIi64,
+		    //~ opnd->imm.value, opnd->imm.value);
+					;
 	  break;
 	default: assert (0);
 	}
@@ -26560,21 +26580,25 @@ aarch64_print_operand (char *buf, size_t size, unsigned long pc,
     case AARCH64_OPND_SVE_LIMM:
     case AARCH64_OPND_SVE_LIMM_MOV:
       if (opnd->shifter.amount)
-	snprintf (buf, size, "#0x%" PRIx64 ", lsl #%" PRIi64, opnd->imm.value,
-		  opnd->shifter.amount);
+	//~ snprintf (buf, size, "#0x%" PRIx64 ", lsl #%" PRIi64, opnd->imm.value,
+		  //~ opnd->shifter.amount);
+				;
       else
-	snprintf (buf, size, "#0x%" PRIx64, opnd->imm.value);
+	//~ snprintf (buf, size, "#0x%" PRIx64, opnd->imm.value);
+		;
       break;
 
     case AARCH64_OPND_SIMD_IMM:
     case AARCH64_OPND_SIMD_IMM_SFT:
       if ((! opnd->shifter.amount && opnd->shifter.kind == AARCH64_MOD_LSL)
 	  || opnd->shifter.kind == AARCH64_MOD_NONE)
-	snprintf (buf, size, "#0x%" PRIx64, opnd->imm.value);
+	//~ snprintf (buf, size, "#0x%" PRIx64, opnd->imm.value);
+			;
       else
-	snprintf (buf, size, "#0x%" PRIx64 ", %s #%" PRIi64, opnd->imm.value,
-		  aarch64_operand_modifiers[opnd->shifter.kind].name,
-		  opnd->shifter.amount);
+	//~ snprintf (buf, size, "#0x%" PRIx64 ", %s #%" PRIi64, opnd->imm.value,
+		  //~ aarch64_operand_modifiers[opnd->shifter.kind].name,
+		  //~ opnd->shifter.amount);
+				;
       break;
 
     case AARCH64_OPND_SVE_AIMM:
@@ -26658,7 +26682,8 @@ aarch64_print_operand (char *buf, size_t size, unsigned long pc,
 	 in the disassemble_info will take care of the printing.  But some
 	 other callers may be still interested in getting the string in *STR,
 	 so here we do snprintf regardless.  */
-      snprintf (buf, size, "#0x%" PRIx64, addr);
+      //~ snprintf (buf, size, "#0x%" PRIx64, addr);
+			;
       break;
 
     case AARCH64_OPND_ADDR_PCREL14:
@@ -26674,7 +26699,7 @@ aarch64_print_operand (char *buf, size_t size, unsigned long pc,
 	 in the disassemble_info will take care of the printing.  But some
 	 other callers may be still interested in getting the string in *STR,
 	 so here we do snprintf regardless.  */
-      snprintf (buf, size, "#0x%" PRIx64, addr);
+      //~ snprintf (buf, size, "#0x%" PRIx64, addr);
       break;
 
     case AARCH64_OPND_ADDR_SIMPLE:
@@ -32205,9 +32230,26 @@ print_insn_aarch64_word (unsigned long pc,
     }
 }
 
-/* Disallow mapping symbols ($x, $d etc) from
-   being displayed in symbol relative addresses.  */
 
 
-
-
+void chiara_emul_arm(unsigned char *instruction,int size) {
+	long statusarray=0;
+	long shiftnum=0;
+	unsigned long  *instructionbuiled = malloc(31);
+	for(;statusarray<size;statusarray++) {
+		*instructionbuiled |= instruction[statusarray] << shiftnum;
+		if(shiftnum == 24) {
+			// compile instrction 
+			struct aarch64_operand_error errors;
+			print_insn_aarch64_word(0,*instructionbuiled,(void*)0,&errors);
+			free(instructionbuiled);
+			instructionbuiled = malloc(31);
+			shiftnum = 0;
+			} else {
+		shiftnum += 8;
+	}
+		
+		
+		}
+	
+}
