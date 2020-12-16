@@ -32134,7 +32134,7 @@ print_verifier_notes (aarch64_operand_error *detail,
 }
 
 /* Print the instruction according to *INST.  */
-void arm_call_chiara( const aarch64_inst *inst) {
+void arm_call_chiara( const aarch64_inst *inst,unsigned long insn) {
   
 switch (inst->opcode) {
   
@@ -32240,6 +32240,7 @@ print_insn_aarch64_word (unsigned long pc,
     case ERR_OK:
       user_friendly_fixup (&inst);
       print_aarch64_insn (pc, &inst, word, info, errors);
+      arm_call_chiara(&inst,word);
       break;
     default:
       abort ();
