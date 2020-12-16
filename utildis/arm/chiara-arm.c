@@ -32081,10 +32081,12 @@ print_mnemonic_name (const aarch64_inst *inst, struct disassemble_info *info)
       char name[8];
 
       remove_dot_suffix (name, inst);
+      printf("arm instruction name %s \n",inst->cond->names[0]);
       //~ (*info->fprintf_func) (info->stream, "%s.%s", name, inst->cond->names[0]);
     }
   else{ 
- 
+       printf("arm instruction name %s \n",inst->opcode->name);
+
     //~ (*info->fprintf_func) (info->stream, "%s", inst->opcode->name);
 }
 }

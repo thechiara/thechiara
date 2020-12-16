@@ -206,6 +206,7 @@ switch (sectionactuelstruct[sectionread].sh_type) {
 		case EM_VAX : printf("DEC ALPHA 64bits \n");  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 		case EM_X86_64 :  chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
 		case EM_386 :  chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
+		case EM_AARCH64 : printf("AARCH64 \n");  chiara_emul_arm(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
 default : printf("Dont know fatal : %d \n",elfheader->e_machine);  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);
 
 		}
