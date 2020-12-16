@@ -32136,13 +32136,13 @@ print_verifier_notes (aarch64_operand_error *detail,
 /* Print the instruction according to *INST.  */
 void arm_call_chiara( const aarch64_inst *inst,unsigned long insn) {
   
-switch (inst->opcode) {
+switch (inst->opcode->opcode) {
   
   case 0x11000000 : {
    // add
    // need to read the gpr and add 61+
-   // opnd->reg.regno
-    chiara_action_reg(0,0,0,ARM_64,0);
+ 
+    chiara_action_reg(inst->operands[0].reglane.regno,inst->operands[1].reglane.regno,inst->operands[2].reglane.regno,ACTION_ADD,ARM_64,0);
     }
   
   }  
