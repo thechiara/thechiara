@@ -62,6 +62,7 @@ struct chiara_compute_global global_struct;
 #define X86_IMAGE 0x44
 #define POWERPC_LITTLENDIAN_IMAGE 0x20
 #define POWERPC_BIGNDIAN_IMAGE 0x21
+#define ARM_64 0x22
 
 
 #define ACTION_AND 0x1

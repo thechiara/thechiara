@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <stdlib.h>
+       #include <byteswap.h>
 
 #define XALLOCA(T)		((T *) alloca (sizeof (T)))
 #define XNEW(T)			((T *) malloc (sizeof (T)))
@@ -32133,7 +32134,20 @@ print_verifier_notes (aarch64_operand_error *detail,
 }
 
 /* Print the instruction according to *INST.  */
-
+void arm_call_chiara( const aarch64_inst *inst) {
+  
+switch (inst->opcode) {
+  
+  case 0x11000000 : {
+   // add
+   // need to read the gpr and add 61+
+   // opnd->reg.regno
+    chiara_action_reg(0,0,0,ARM_64,0);
+    }
+  
+  }  
+  
+}
 static void
 print_aarch64_insn (unsigned long pc, const aarch64_inst *inst,
 		    const aarch64_insn code,
@@ -32244,6 +32258,27 @@ void chiara_emul_arm(unsigned char *instruction,int size) {
 			// compile instrction 
 			struct aarch64_operand_error errors;
 			print_insn_aarch64_word(0,*instructionbuiled,(void*)0,&errors);
+			free(instructionbuiled);
+			instructionbuiled = malloc(31);
+			shiftnum = 0;
+			} else {
+		shiftnum += 8;
+	}
+		
+		
+		}
+	
+}
+void chiara_emul_arm_big(unsigned char *instruction,int size) {
+	long statusarray=0;
+	long shiftnum=0;
+	unsigned long  *instructionbuiled = malloc(31);
+	for(;statusarray<size;statusarray++) {
+		*instructionbuiled |= instruction[statusarray] << shiftnum;
+		if(shiftnum == 24) {
+			// compile instrction 
+			struct aarch64_operand_error errors;
+			print_insn_aarch64_word(0,bswap_32(*instructionbuiled),(void*)0,&errors);
 			free(instructionbuiled);
 			instructionbuiled = malloc(31);
 			shiftnum = 0;

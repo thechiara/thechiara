@@ -803,6 +803,10 @@ struct aarch64_opcode
   enum err_type (* verifier) (const struct aarch64_inst *, const aarch64_insn,
 			      unsigned long , int, aarch64_operand_error *,
 			      struct aarch64_instr_sequence *); // bug bfd
+            
+unsigned char gpraction; // assign macro contained in chiaracore.h
+  void (*to_chiara_gpr) (unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);            
+
 };
 
 typedef struct aarch64_opcode aarch64_opcode;
