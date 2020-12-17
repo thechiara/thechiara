@@ -32138,11 +32138,26 @@ void arm_call_chiara( const aarch64_inst *inst,unsigned long insn) {
   
 switch (inst->opcode->opcode) {
   
-  case 0x11000000 : {
+  case 0x0b200000 : {
    // add
-   // need to read the gpr and add 61+
- 
-    chiara_action_reg(inst->operands[0].reglane.regno,inst->operands[1].reglane.regno,inst->operands[2].reglane.regno,ACTION_ADD,ARM_64,0);
+   // need to read the gpr and add 63+
+ printf(" ARM : test num reg %d \n",inst->operands[0].reglane);
+    chiara_action_reg(63+inst->operands[0].reglane.regno,63+inst->operands[1].reglane.regno,63+inst->operands[2].reglane.regno,ACTION_ADD,ARM_64,0);
+    break;
+    }
+    
+  case 0x1a000000 : {
+   // add carry
+   // need to read the gpr and add 63+
+ printf(" ARM : test num reg %d \n",inst->operands[0].reglane);
+    chiara_action_reg(63+inst->operands[0].reglane.regno,63+inst->operands[1].reglane.regno,63+inst->operands[2].reglane.regno,ACTION_ADD,ARM_64,0);
+    break;
+    }
+  case 0x4b200000 : {
+   // sub
+   // need to read the gpr and add 63+
+    chiara_action_reg(63+inst->operands[0].reglane.regno,63+inst->operands[1].reglane.regno,63+inst->operands[2].reglane.regno,ACTION_SUB,ARM_64,0);
+    break;
     }
   
   }  
