@@ -84,7 +84,8 @@ struct chiara_compute_global global_struct;
 #define ACTION_DISP_REG_COPY 0x11 //copy reg in another reg
 #define ACTION_DIV 0x12
 #define ACTION_CMP 0x13
-#define ACTION_BSWAP 0x14 // reverse byte order 
+#define ACTION_BSWAPRIGHT 0x14 // reverse byte order 
+#define ACTION_BSWAPLEFT 0x15 // reverse byte order 
 
 #define GPR8BITS 1
 #define GPR16BITS 2
