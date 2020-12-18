@@ -32141,6 +32141,7 @@ int operands_num =   sizeof(inst->operands) / sizeof(inst->operands[0]);
 
 
 if(inst->opcode->gpraction != NO_ACTION) {
+
     unsigned long  GPR[2] = {0,0,0}; 
     long long DATAIMMEDIAT =  0 ;
    int GPRtaked = 0;
@@ -32159,7 +32160,9 @@ for(int x = 0;x<operands_num;x++) {
     
   }
   
-}   
+}  
+   printf("call thechiara \n");
+
   chiara_action_reg(GPR[0],GPR[1],GPR[3],inst->opcode->gpraction,ARM_64,DATAIMMEDIAT);  
     
     }

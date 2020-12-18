@@ -41,8 +41,8 @@
 #include <chiara-elf.h>
 #include <chiaracore.h>
 #include <limits.h>
-   #include <unistd.h>
-
+#include <unistd.h>
+#include <byteswap.h>
 void chiara_clear_flags( ) {
 			global_struct.flags.equal =0;
 			global_struct.flags.carry =0;
@@ -620,13 +620,74 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 
 			// ACTION_DIV reg
 			gpr_orga_array[first].data = gpr_orga_array[second].data / gpr_orga_array[third].data;
+			} else if(action == ACTION_BSWAPRIGHT) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+			// ACTION_BSWAPRIGHT reg
+			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
+			}	 else if(action == ACTION_BSWAPRIGHT) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+			// ACTION_BSWAPLEFT reg
+			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
 			}
 
 
 
 
 
+		case ARM_64: {
+			
+			if(action == ACTION_AND) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
+			// and reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data & gpr_orga_array[third].data;
+			} else if(action == ACTION_XOR) {
+				chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_XOR reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ^ gpr_orga_array[third].data;
+			} else if(action == ACTION_OR) {
+		chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data | gpr_orga_array[third].data;
+			} else if(action == ACTION_ADD) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_ADD reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data +  gpr_orga_array[third].data;
+			} else if(action == ACTION_SUB) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data - gpr_orga_array[third].data;
+			} else if(action == ACTION_DISP_REG_COPY) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_DISP_REG_COPY reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ;
+			} else if(action == ACTION_DISP_REG) {
+						chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			// ACTION_DISP_REG reg
+			gpr_orga_array[first].data = datahardcoded ;
+			}else if(action == ACTION_DIV) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_DIV reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data / gpr_orga_array[third].data;
+			}	 else if(action == ACTION_BSWAPRIGHT) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+			// ACTION_BSWAPRIGHT reg
+			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
+			}	 else if(action == ACTION_BSWAPRIGHT) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+			// ACTION_BSWAPLEFT reg
+			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
+			}
+			
+			
+	}
 		break;
 		case POWERPC_BIGNDIAN_IMAGE: break;
 		
