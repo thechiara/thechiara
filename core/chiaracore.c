@@ -684,11 +684,127 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 			// ACTION_BSWAPLEFT reg
 			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
-			}
+			} else if(action == ACTION_MULNORMAL) {
+							chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_MULNORMAL reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data *  gpr_orga_array[third].data;
+			} 
 			
 			
 	}
 		break;
+		case RISCV : {
+			
+		
+			if(action == ACTION_AND) {
+				
+					if(datahardcoded != NODATA) {
+	
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[third],(void*)0,datahardcoded);
+
+			// and reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data & datahardcoded;	
+	
+		}
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// and reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data & gpr_orga_array[third].data;
+			} else if(action == ACTION_XOR) {
+		if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_XOR reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ^ datahardcoded;
+return ; 
+}
+				chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_XOR reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ^ gpr_orga_array[third].data;
+			} else if(action == ACTION_OR) {
+				if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data | datahardcoded;
+return;
+}		
+				
+		chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data | gpr_orga_array[third].data;
+			} else if(action == ACTION_ADD) {
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_ADD reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data +  gpr_orga_array[third].data;
+			} else if(action == ACTION_SUB) {
+		if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data - datahardcoded;
+return;
+}
+						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data - gpr_orga_array[third].data;
+			} else if(action == ACTION_DISP_REG_COPY) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_DISP_REG_COPY reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ;
+			} else if(action == ACTION_DISP_REG) {
+						chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			// ACTION_DISP_REG reg
+			gpr_orga_array[first].data = datahardcoded ;
+			}else if(action == ACTION_DIV) {
+				if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			
+gpr_orga_array[first].data = gpr_orga_array[second].data / datahardcoded;					
+					
+				} else {
+				
+chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_DIV reg
+			
+gpr_orga_array[first].data = gpr_orga_array[second].data / gpr_orga_array[third].data;
+		}
+			}	 else if(action == ACTION_BSWAPRIGHT) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+			// ACTION_BSWAPRIGHT reg
+			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
+			}	 else if(action == ACTION_BSWAPRIGHT) {
+						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
+			// ACTION_BSWAPLEFT reg
+			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
+			} else if(action == ACTION_MULNORMAL) {
+					if(datahardcoded != NODATA) {
+	chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_MULNORMAL reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data *  datahardcoded;
+
+return;
+}			
+				
+							chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
+
+			// ACTION_MULNORMAL reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data *  gpr_orga_array[third].data;
+			}			
+			
+			
+}
+	
 		case POWERPC_BIGNDIAN_IMAGE: break;
 		
 		}

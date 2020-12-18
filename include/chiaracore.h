@@ -63,6 +63,7 @@ struct chiara_compute_global global_struct;
 #define POWERPC_LITTLENDIAN_IMAGE 0x20
 #define POWERPC_BIGNDIAN_IMAGE 0x21
 #define ARM_64 0x22
+#define RISCV 0x11
 
 #define NO_ACTION 0x0
 #define ACTION_AND 0x1
@@ -86,6 +87,7 @@ struct chiara_compute_global global_struct;
 #define ACTION_CMP 0x13
 #define ACTION_BSWAPRIGHT 0x14 // reverse byte order 
 #define ACTION_BSWAPLEFT 0x15 // reverse byte order 
+#define ACTION_MULNORMAL 0x16 
 
 #define GPR8BITS 1
 #define GPR16BITS 2

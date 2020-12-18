@@ -340,6 +340,9 @@ struct riscv_opcode
      of bits describing the instruction, notably any relevant hazard
      information.  */
   unsigned long pinfo;
+  unsigned char gpraction; // assign macro contained in chiaracore.h
+  void (*to_chiara_gpr) (unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);      
+  
 };
 
 /* The current supported ISA spec versions.  */

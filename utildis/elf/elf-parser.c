@@ -104,6 +104,7 @@ if (elfheader->e_ident[EI_DATA] == ELFDATA2LSB) {
 		
 	case EM_AARCH64 : printf("AARCH64 \n");  chiara_emul_arm(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
 		case EM_ARM : printf("EM_ARM \n");  chiara_emul_arm(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 	
+		case EM_RISCV : chiara_emul_riscv(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size); break;
 default : printf("Dont know fatal : %d \n",elfheader->e_machine);
 
 		}
@@ -213,6 +214,7 @@ switch (sectionactuelstruct[sectionread].sh_type) {
 		case EM_386 :  chiara_emul_x86(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
 		case EM_AARCH64 : printf("AARCH64 \n");  chiara_emul_arm(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
 		case EM_ARM : printf("EM_ARM \n");  chiara_emul_arm(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
+		case EM_RISCV: chiara_emul_riscv(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
 default : printf("Dont know fatal : %d \n",elfheader->e_machine);  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);
 
 		}
