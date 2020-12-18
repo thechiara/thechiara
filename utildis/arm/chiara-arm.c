@@ -32132,35 +32132,37 @@ print_verifier_notes (aarch64_operand_error *detail,
 		;
      //~ (*info->fprintf_func) (info->stream, " at operand %d", detail->index + 1);
 }
-
 /* Print the instruction according to *INST.  */
 void arm_call_chiara( const aarch64_inst *inst,unsigned long insn) {
   
-switch (inst->opcode->opcode) {
-  
-  case 0x0b200000 : {
-   // add
-   // need to read the gpr and add 63+
- printf(" ARM : test num reg %d \n",inst->operands[0].reglane);
-    chiara_action_reg(63+inst->operands[0].reglane.regno,63+inst->operands[1].reglane.regno,63+inst->operands[2].reglane.regno,ACTION_ADD,ARM_64,0);
-    break;
-    }
+
+
+int operands_num =   sizeof(inst->operands) / sizeof(inst->operands[0]);
+
+
+if(inst->opcode->gpraction != NO_ACTION) {
+    unsigned long  GPR[2] = {0,0,0}; 
+    long long DATAIMMEDIAT =  0 ;
+   int GPRtaked = 0;
+for(int x = 0;x<operands_num;x++) {
+
+  // 63+inst->operands[0].reglane.regno
+  //inst->operands[0].reglane.imm
+  if(inst->operands[x].type == OPND(AIMM) || OPND(ADDR_SIMM9) || OPND(ADDR_UIMM12) ||  OPND(ADDR_SIMPLE) || OPND(LIMM) || OPND(ADDR_PCREL19) ) {
     
-  case 0x1a000000 : {
-   // add carry
-   // need to read the gpr and add 63+
- printf(" ARM : test num reg %d \n",inst->operands[0].reglane);
-    chiara_action_reg(63+inst->operands[0].reglane.regno,63+inst->operands[1].reglane.regno,63+inst->operands[2].reglane.regno,ACTION_ADD,ARM_64,0);
-    break;
-    }
-  case 0x4b200000 : {
-   // sub
-   // need to read the gpr and add 63+
-    chiara_action_reg(63+inst->operands[0].reglane.regno,63+inst->operands[1].reglane.regno,63+inst->operands[2].reglane.regno,ACTION_SUB,ARM_64,0);
-    break;
-    }
+    DATAIMMEDIAT = inst->operands[x].imm.value;
+    
+    
+  } else {
+    GPR[GPRtaked] = 63+inst->operands[x].reglane.regno;
+    GPRtaked++;
+    
+  }
   
-  }  
+}   
+  chiara_action_reg(GPR[0],GPR[1],GPR[3],inst->opcode->gpraction,ARM_64,DATAIMMEDIAT);  
+    
+    }
   
 }
 static void
