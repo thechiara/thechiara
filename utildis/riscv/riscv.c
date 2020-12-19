@@ -985,7 +985,7 @@ void chiara_parse_riscv_instruction(unsigned long long instruction) {
 
 		if(riscv_opcodes[x].match_func(&riscv_opcodes[x],instruction)) {
 			printf("NAME RISCV %s \n",riscv_opcodes[x].name);
-			
+			// call chiara and decrypt operand
 			
 			
 			break;

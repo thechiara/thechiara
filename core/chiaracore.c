@@ -504,26 +504,72 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 		case X86_IMAGE:
 		
 		if(action == ACTION_AND) {
+
+				if(datahardcoded != NODATA) {
+		chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// and reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data & datahardcoded;			
+					
+return;
+}
+
 						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 
 			// and reg
 			gpr_orga_array[first].data &= gpr_orga_array[second].data;
 			} else if(action == ACTION_XOR) {
+				
+				if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+	
+			// ACTION_XOR reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ^ datahardcoded;					
+return;
+}
+				
 								chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 	
 			// ACTION_XOR reg
 			gpr_orga_array[first].data ^= gpr_orga_array[second].data;
 			} else if(action == ACTION_OR) {
+				if(datahardcoded != NODATA) {
+	chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+	
+			// ACTION_OR reg
+			gpr_orga_array[first].data |= datahardcoded;
+
+return;
+}				
+				
 					chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,NODATA);
 	
 			// ACTION_OR reg
 			gpr_orga_array[first].data |= gpr_orga_array[second].data;
 			} else if(action == ACTION_ADD) {
+
+if(datahardcoded != NODATA) {
+	chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			// ACTION_ADD reg
+			gpr_orga_array[first].data += datahardcoded;
+return;
+}	
+				
 						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 
 			// ACTION_ADD reg
 			gpr_orga_array[first].data += gpr_orga_array[second].data;
 			} else if(action == ACTION_SUB) {
+
+if(datahardcoded != NODATA) {
+	chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data -= datahardcoded;	
+return;
+}				
+				
 						chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 
 			// ACTION_SUB reg
@@ -545,23 +591,56 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 			gpr_orga_array[first].data = datahardcoded;
 			
 			} else if(action == ACTION_DIVUNSIGNED) {
+				
+if(datahardcoded != NODATA) {
+
+chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+//ACTION_DIVUNSIGNED
+			gpr_orga_array[first].data = gpr_orga_array[first].data /  datahardcoded;
+return;
+}				
+				
 			chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 //ACTION_DIVUNSIGNED
 			gpr_orga_array[first].data = gpr_orga_array[first].data /  gpr_orga_array[second].data;
 			}else if(action == ACTION_DIVSIGNED) {
+if(datahardcoded != NODATA) {
+
+chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+//ACTION_UNSIGNED
+			gpr_orga_array[first].data = gpr_orga_array[first].data /  datahardcoded;
+return;			
+}				
 			chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 //ACTION_UNSIGNED
 			gpr_orga_array[first].data = gpr_orga_array[first].data /  gpr_orga_array[second].data;
 			} else if(action == ACTION_MULSIGNED) {
+if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+//ACTION_MULSIGNED
+			gpr_orga_array[first].data = gpr_orga_array[first].data * datahardcoded;
+return;
+}				
 			chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 //ACTION_MULSIGNED
 			gpr_orga_array[first].data = gpr_orga_array[first].data * gpr_orga_array[second].data;
 			} else if(action == ACTION_MULUNSIGNED) {
+if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+//ACTION_MULSIGNED
+			gpr_orga_array[first].data = gpr_orga_array[first].data * datahardcoded;
+return;
+}				
 			chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 //ACTION_MULUNSIGNED
 			gpr_orga_array[first].data = gpr_orga_array[first].data * gpr_orga_array[second].data;
 			}else if(action == ACTION_MODULO) {
-				
+if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+//ACTION_MULSIGNED
+			gpr_orga_array[first].data = gpr_orga_array[first].data % datahardcoded;
+return;
+}				
 			chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,NODATA);
 //ACTION_MODULO
 			gpr_orga_array[first].data = gpr_orga_array[first].data % gpr_orga_array[second].data;
@@ -637,26 +716,67 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 		case ARM_64: {
 			
 			if(action == ACTION_AND) {
+				if(datahardcoded != NODATA) {
+	chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// and reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data & datahardcoded;
+return;
+}
+				
 						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
 			// and reg
 			gpr_orga_array[first].data = gpr_orga_array[second].data & gpr_orga_array[third].data;
 			} else if(action == ACTION_XOR) {
+				
+		if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_XOR reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data ^ datahardcoded;
+return;
+}				
 				chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
 			// ACTION_XOR reg
 			gpr_orga_array[first].data = gpr_orga_array[second].data ^ gpr_orga_array[third].data;
 			} else if(action == ACTION_OR) {
+		if(datahardcoded != NODATA) {
+		
+		chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data |datahardcoded;
+return;
+}				
+				
 		chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
 			// ACTION_SUB reg
 			gpr_orga_array[first].data = gpr_orga_array[second].data | gpr_orga_array[third].data;
 			} else if(action == ACTION_ADD) {
+
+		if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_ADD reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data +  datahardcoded;
+return;
+}				
 						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
 			// ACTION_ADD reg
 			gpr_orga_array[first].data = gpr_orga_array[second].data +  gpr_orga_array[third].data;
 			} else if(action == ACTION_SUB) {
+				
+			if(datahardcoded != NODATA) {
+	chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_SUB reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data - datahardcoded;
+return;
+}			
 						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
 			// ACTION_SUB reg
@@ -672,6 +792,14 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 			// ACTION_DISP_REG reg
 			gpr_orga_array[first].data = datahardcoded ;
 			}else if(action == ACTION_DIV) {
+				
+		if(datahardcoded != NODATA) {
+chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
+
+			// ACTION_DIV reg
+			gpr_orga_array[first].data = gpr_orga_array[second].data / datahardcoded;
+return;
+}				
 						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
 			// ACTION_DIV reg
@@ -685,6 +813,11 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 			// ACTION_BSWAPLEFT reg
 			gpr_orga_array[first].data = bswap_64(gpr_orga_array[second].data);
 			} else if(action == ACTION_MULNORMAL) {
+				
+		if(datahardcoded != NODATA) {
+
+return;
+}
 							chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
 			// ACTION_MULNORMAL reg
@@ -706,6 +839,7 @@ chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[third],(void*)0,datahard
 			// and reg
 			gpr_orga_array[first].data = gpr_orga_array[second].data & datahardcoded;	
 	
+return;
 		}
 						chiara_check_gpr(&gpr_orga_array[second],&gpr_orga_array[third],(void*)0,NODATA);
 
