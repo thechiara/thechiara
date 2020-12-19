@@ -58,7 +58,7 @@ struct chiara_compute_global {
 	struct chiara_compute_stats stats;
 	};
 struct chiara_compute_global global_struct;
-
+#define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
 #define X86_IMAGE 0x44
 #define POWERPC_LITTLENDIAN_IMAGE 0x20
 #define POWERPC_BIGNDIAN_IMAGE 0x21
