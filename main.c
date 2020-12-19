@@ -38,103 +38,132 @@
 #include <errno.h>
 #include <chiara-elf.h>
 #include <chiaracompute.h>
+#include <chiaracore.h>
 
 
 #define CHIARA_EXTRACT_ELF 1<<1
+#define CHIARA_EXTRACT_PE 1<<2
+#define CHIARA_EXTRACT_ISO 1<<3
+#define CHIARA_EXTRACT_RAWX86 1<<4
+
+
+struct thechiaradecrypt{
+int file;
+unsigned long long arguments;
+	void (*call)(char*,int);
+	}decrypt;
+	
+static void chiara_parse_argv_iso(int argn,const char *argv[]) {
+int status  = 1;
+
+decrypt.arguments = CHIARA_EXTRACT_ISO;
+
+if(2+status != argn) {
+	
+
+int end = lseek(decrypt.file,0,SEEK_END );
+	
+	lseek(decrypt.file,0,SEEK_SET  ); 
+	
+unsigned  char  *gaspard = malloc(end);	
+	
+int size = 	read(decrypt.file,gaspard,end);
+close(decrypt.file);
+printf("Now call the iso module \n");
+chiara_init_iso(gaspard,end,argv[3]);	
+	} else {
+	printf("You don't provide the iso filename or the target architecture \n ");	
+	printf("thechiara : fatal error \n ");	
+		exit(1);
+	}
+
+}
+static void chiara_call_function() {
+	
+
+int end = lseek(decrypt.file,0,SEEK_END );
+	
+	lseek(decrypt.file,0,SEEK_SET  ); 
+	
+unsigned  char  *gaspard = malloc(end);	
+	
+int size = 	read(decrypt.file,gaspard,end);
+
+decrypt.call(gaspard,end);	
+close(decrypt.file);
+
+}
+	
+static void chiara_decrypt_arguments(int argn,const char *argv[]) {
+	
+int status = 0;
+
+while(status!= argn) {
+printf("argv : %s argv num %d  \n",argv[status],argn);
+if(strcmp(argv[status],"-elf") == 0) {
+	status++;
+	decrypt.arguments |=  CHIARA_EXTRACT_ELF;
+	if(status != argn) {
+		printf("We will decrypt elf : %s \n",argv[status]);
+		decrypt.file  = open(argv[status],O_RDONLY);
+		decrypt.call = chiara_extract_elf;
+
+		} else {
+		printf("You don't provide an elf file STOP\n");	
+			exit(1);
+		}
+}	else if (strcmp(argv[status],"-exe") == 0) {
+	status++;
+	decrypt.arguments |=  CHIARA_EXTRACT_RAWX86;
+	if(status != argn) {
+		printf("We will decrypt exe  : %s \n",argv[status]);
+		decrypt.file  = open(argv[status],O_RDONLY);
+		decrypt.call = chiara_dos_header_look;
+		} else {
+		printf("You don't provide an exe file thechiara STOP\n");	
+			exit(1);
+		}	
+	
+} else if (strcmp(argv[status],"-rawx86") == 0) {
+	
+status++;
+	decrypt.arguments |=  CHIARA_EXTRACT_RAWX86;
+	if(status != argn) {
+		printf("We will decrypt raw x86 file  : %s \n",argv[status]);
+		decrypt.file  = open(argv[status],O_RDONLY);
+		decrypt.call = chiara_emul_x86;
+		} else {
+		printf("You don't provide a  file thechiara STOP\n");	
+			exit(1);
+		}		
+} else if (strcmp(argv[1],"-iso") == 0) {
+	return chiara_parse_argv_iso(argn,argv);
+} else {
+	status++;
+	
+}
+
+}
+if(*decrypt.call != 0) {
+	chiara_call_function();
+	
+	} else {
+printf("You don't provide arguments : \n");
+	printf("usage of thechiara  : \n ");
+	printf("-iso [NAME] [ARCHITECTURE,ppcle,x86,ppcbe,arm64,riscv64] \n ");
+	printf("-elf [NAME]  \n");
+	printf("-rawx86 [NAME]   \n");	
+	exit(1);
+}	
+	
+}
 
 int main (int argn,const char *argv[]) {
 
 printf("Copyright 2020 Gaspard COURCHINOUX and contributors of thechiara project \n");
-printf("thechiara can open elf files usage = -elf thenameofile \n");
-printf("thechiara will detect the destination architecture of elf and start decompilling it and recompile in chiarasm \n");
 
-if(strcmp(argv[1],"-elf") == 0) {
-int file = open(argv[2],O_RDONLY);
+chiara_decrypt_arguments(argn,argv);
 
-
-int end = lseek(file,0,SEEK_END );
-	
-	lseek(file,0,SEEK_SET  ); // puyt on the begin
-	
-	// ici tester le fichier ELF ?iso ? raw
-unsigned  char  *gaspard = malloc(end);
-int size = 	read(file,gaspard,end);
-close(file);
-int status = 0;
-printf("Now tell the elfmodule to analyze the elf file \n");
-chiara_extract_elf(gaspard);
-
-}else if(strcmp(argv[1],"-exe") == 0) {
-int file = open(argv[2],O_RDONLY);
-
-
-int end = lseek(file,0,SEEK_END );
-	
-	lseek(file,0,SEEK_SET  ); // puyt on the begin
-	
-	// ici tester le fichier ELF ?iso ? raw
-unsigned  char  *gaspard = malloc(end);
-int size = 	read(file,gaspard,end);
-close(file);
-int status = 0;
-printf("Now call  the exe module to analyze the elf file \n");
-chiara_dos_header_look(gaspard,end);
-
-
-}else if(strcmp(argv[1],"-iso") == 0) {
-	if(argn <=3) {
-		printf("STOP : \n");
-		printf("iso support several targets : \n");
-		printf("-x86 for 32 bits intel \n");
-		printf("-ppcle for power pc little endian \n");
-		printf("-ppcbe for power pc big endian \n");
-		return;
-		
-		}
-int file = open(argv[2],O_RDONLY);
-
-perror("ISO STATUS FILE");
-int end = lseek(file,0,SEEK_END );
-	
-	lseek(file,0,SEEK_SET  ); // puyt on the begin
-	
-	// ici tester le fichier ELF ?iso ? raw
-unsigned  char  *gaspard = malloc(end);
-if(gaspard == NULL) {
-perror("MALLOC STATUS ISO");
-printf("Malloc cannot allow thechiara to get necessary memory, so thechiara will try to detect with your VFS fseek an ISO9660 filesystem \n");
-chiara_init_huge_iso(file,end,argv[3]);
-
-}else {
-int size = 	read(file,gaspard,end);
-close(file);
-int status = 0;
-printf("Now call the iso module \n");
-chiara_init_iso(gaspard,end,argv[3]);
-}
-}else if(strcmp(argv[1],"-rawx86") == 0) {
-	if(argn <=2) {
-		printf("use this argument if you have a raw file contains x86 instructions \n");
-		return;
-		
-		}
-int file = open(argv[2],O_RDONLY);
-
-perror("raw x86 STATUS FILE \n");
-unsigned long long end = lseek(file,0,SEEK_END );
-	
-	lseek(file,0,SEEK_SET  ); // puyt on the begin
-	
-	// ici tester le fichier ELF ?iso ? raw
-unsigned  char  *gaspard = malloc(end);
-
-int size = 	read(file,gaspard,end);
-close(file);
-int status = 0;
-printf("Now call the raw module \n");
-chiara_emul_x86(gaspard,end);
-
-}
 while(1);
 	
 

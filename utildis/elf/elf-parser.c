@@ -215,7 +215,7 @@ switch (sectionactuelstruct[sectionread].sh_type) {
 		case EM_AARCH64 : printf("AARCH64 \n");  chiara_emul_arm(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
 		case EM_ARM : printf("EM_ARM \n");  chiara_emul_arm(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break; 
 		case EM_RISCV: chiara_emul_riscv(structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);break;
-default : printf("Dont know fatal : %d \n",elfheader->e_machine);  chiara_emul_littleendian_dec (structheader +sectionactuelstruct[sectionread].sh_offset,sectionactuelstruct[sectionread].sh_size);
+default : printf("Dont know fatal : %d \n",elfheader->e_machine);  
 
 		}
 
@@ -248,7 +248,7 @@ default : printf("Dont know fatal : %d \n",elfheader->e_machine);
 
 	}
 
-void chiara_extract_elf ( char *structheader) {
+void chiara_extract_elf (char *structheader,int unused2) {
 	
 	Elf32_Ehdr *elfheader = structheader;
 

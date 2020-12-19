@@ -25,7 +25,7 @@
 #include <string.h>
 #include <chiaracore.h>
 
-  unsigned long long *pointer_riscv;
+  unsigned char *pointer_riscv;
 
 //https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md -> good link because the riscv docs sucks
 /* Register names used by gas and objdump.  */
