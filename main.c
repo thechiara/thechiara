@@ -161,7 +161,14 @@ printf("You don't provide arguments : \n");
 int main (int argn,const char *argv[]) {
 
 printf("Copyright 2020 Gaspard COURCHINOUX and contributors of thechiara project \n");
-
+if(argn <= 2) {
+	printf("You don't provide arguments : \n");
+	printf("usage of thechiara  : \n ");
+	printf("-iso [NAME] [ARCHITECTURE,ppcle,x86,ppcbe,arm64,riscv64] \n ");
+	printf("-elf [NAME]  \n");
+	printf("-rawx86 [NAME]   \n");	
+	return;
+}
 chiara_decrypt_arguments(argn,argv);
 
 while(1);
