@@ -40,6 +40,8 @@
 #include <chiaracompute.h>
 
 
+#define CHIARA_EXTRACT_ELF 1<<1
+
 int main (int argn,const char *argv[]) {
 
 printf("Copyright 2020 Gaspard COURCHINOUX and contributors of thechiara project \n");
