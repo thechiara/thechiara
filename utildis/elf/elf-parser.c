@@ -156,8 +156,12 @@ switch (sectionactuelstruct[sectionread].sh_flags) {
 	}
 void chiara_extract_64bits( char *structheader) {
 		Elf64_Ehdr *elfheader = structheader;
+printf("elfheader->e_shoff %d \n",elfheader->e_shoff);
+printf("elfheader->e_phoff %d \n",elfheader->e_phoff);
+if(elfheader->e_shoff == 0) {
 
 	unsigned char *programheader = structheader + elfheader->e_shoff + elfheader->e_shstrndx * sizeof(Elf64_Ehdr);
+	
 	Elf64_Phdr *programheaderstruct = programheader;
 switch (programheaderstruct->p_type) {
 	case PT_LOAD : printf("pt load \n"); break;
@@ -167,7 +171,7 @@ switch (programheaderstruct->p_type) {
 	case PT_LOPROC : printf("PT_LOPROC \n"); break;
 	default: printf("valeur %x \n",programheaderstruct->p_type); break;
 	}
-
+}
 unsigned char *premieresection = structheader+elfheader->e_shoff;
 Elf64_Shdr *sectionactuelstruct =  premieresection;
 
