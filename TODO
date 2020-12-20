@@ -10,11 +10,12 @@ write the fpu support and the memory support
 
 Elliot will write the fpu support very soon
 
+
 # on all architectures 
 
 reread the basic intepretation that support by chiara on it 
 
-especially, arm target because Elliot think there are a lot of bizarre things 
+especially, arm target because Elliot thinks there are a lot of bizarre things on it  
 
 
 
