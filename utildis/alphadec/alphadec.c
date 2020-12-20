@@ -1,11 +1,8 @@
-/* alpha-opc.c -- Alpha AXP opcode list
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
-   Contributed by Richard Henderson <rth@cygnus.com>,
-   patterned after the PPC opcode handling written by Ian Lance Taylor.
-
-   This file is part of libopcodes.
-
-   This library is free software; you can redistribute it and/or modify
+/*
+ * alphadec .c is a concat of dec alpha c files  in  libopcodes from binutils
+ *    Copyright (C) 2011-2020 Free Software Foundation, Inc.
+Copyright (C) 2020 Elliot-Gaspard COURCHINOUX
+*    This program  is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 3, or (at your option)
    any later version.
@@ -16,9 +13,9 @@
    License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this file; see the file COPYING.  If not, write to the
-   Free Software Foundation, 51 Franklin Street - Fifth Floor, Boston, MA
-   02110-1301, USA.  */
+   along with this program; see the file COPYING3. If not,
+   see <http://www.gnu.org/licenses/>.  */
+ 
 
 #include <stdio.h>
 #include "alpha.h"

@@ -1,4 +1,7 @@
 /* Intel 80386 opcode table
+ * 
+	Copyright (C) 2020 Elliot-Gaspard COURCHINOUX
+
    Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
    This file is part of the GNU opcodes library.

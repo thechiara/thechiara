@@ -1,12 +1,8 @@
-/* RISC-V opcode list
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
-
-   Contributed by Andrew Waterman (andrew@sifive.com).
-   Based on MIPS target.
-
-   This file is part of the GNU opcodes library.
-
-   This library is free software; you can redistribute it and/or modify
+/*
+ * riscv.c is a concat of riscv-dis.c and riscv-opc.c from binutils libopcodes
+ *    Copyright (C) 2011-2020 Free Software Foundation, Inc.
+Copyright (C) 2020 Elliot-Gaspard COURCHINOUX
+*    This program  is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 3, or (at your option)
    any later version.
@@ -19,6 +15,10 @@
    You should have received a copy of the GNU General Public License
    along with this program; see the file COPYING3. If not,
    see <http://www.gnu.org/licenses/>.  */
+ 
+
+
+
 
 #include "opcode/riscv.h"
 #include <stdio.h>

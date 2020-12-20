@@ -1,8 +1,9 @@
 // this was called ppc-opc.c in binutils 
 // I have rewritted some  lines to be compliant to thechiara 
 /* ppc-opc.c -- PowerPC opcode list
+ *    Copyright (C) 2020 Elliot-Gaspard COURCHINOUX
+
    Copyright (C) 1994-2020 Free Software Foundation, Inc.
-   Written by Ian Lance Taylor, Cygnus Support
 
    This file is part of the GNU opcodes library.
 
