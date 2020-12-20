@@ -25,7 +25,7 @@
 #include <string.h>
 #include <chiaracore.h>
 
-  unsigned char *pointer_riscv;
+  unsigned long *pointer_riscv;
 
 //https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md -> good link because the riscv docs sucks
 /* Register names used by gas and objdump.  */
@@ -1047,9 +1047,9 @@ maybe_print_address (struct riscv_private_data *pd, int base_reg, int offset)
 static void
 print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct disassemble_info *info,struct riscv_opcode *insn)
 {
-	unsigned long GPR[3];
+	unsigned long GPR[3] = {0,0,0,0};
 	int status_gpr = 0;
-	long long immediatedata;
+	long long immediatedata = 0;
   int rs1 = (l >> OP_SH_RS1) & OP_MASK_RS1;
   int rd = (l >> OP_SH_RD) & OP_MASK_RD;
 
@@ -1067,30 +1067,30 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	    case 'w': /* RS1 x8-x15 */
 	      printf ("%s",
 		     riscv_gpr_names[EXTRACT_OPERAND (CRS1S, l) + 8]);
-		     GPR[status_gpr] = 63+EXTRACT_OPERAND (CRS1S, l) + 8;
+		     GPR[status_gpr] = 31+EXTRACT_OPERAND (CRS1S, l) + 8;
 		     status_gpr++;
 	      break;
 	    case 't': /* RS2 x8-x15 */
 	    case 'x': /* RS2 x8-x15 */
 	      printf ( "%s",
 		     riscv_gpr_names[EXTRACT_OPERAND (CRS2S, l) + 8]);
-		      GPR[status_gpr] = 63+EXTRACT_OPERAND (CRS1S, l) + 8;
+		      GPR[status_gpr] = 31+EXTRACT_OPERAND (CRS1S, l) + 8;
 		     status_gpr++;
 	      break;
 	    case 'U': /* RS1, constrained to equal RD */
 	      printf ("%s", riscv_gpr_names[rd]);
-	       GPR[status_gpr] = 63+rd;
+	       GPR[status_gpr] = 31+rd;
 		     status_gpr++;
 	      break;
 	    case 'c': /* RS1, constrained to equal sp */
 	      printf ("%s", riscv_gpr_names[X_SP]);
-	       GPR[status_gpr] = 63+X_SP;
+	       GPR[status_gpr] = 31+X_SP;
 		     status_gpr++;
 	      break;
 	    case 'V': /* RS2 */
 	      printf ( "%s",
 		     riscv_gpr_names[EXTRACT_OPERAND (CRS2, l)]);
-		     GPR[status_gpr] = 63+EXTRACT_OPERAND (CRS2, l);
+		     GPR[status_gpr] = 31+EXTRACT_OPERAND (CRS2, l);
 		     status_gpr++;
 	      break;
 	    case 'i':
@@ -1153,6 +1153,8 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	    case 'u':
 	      printf ( "0x%x",
 		     (int)(EXTRACT_RVC_IMM (l) & (RISCV_BIGIMM_REACH-1)));
+		     	      	      	   	      	    	      	immediatedata = EXTRACT_RVC_IMM (l) & (RISCV_BIGIMM_REACH-1);
+
 	      break;
 	    case '>':
 	      printf ("0x%x", (int)EXTRACT_RVC_IMM (l) & 0x3f);
@@ -1169,8 +1171,7 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	    case 'T': /* floating-point RS2 */
 	      printf ("%s",
 		     riscv_fpr_names[EXTRACT_OPERAND (CRS2, l)]);
-		     GPR[status_gpr] = 63+EXTRACT_OPERAND (CRS2, l);
-		     status_gpr++;
+		   
 	      break;
 	    case 'D': /* floating-point RS2 x8-x15 */
 	      printf ("%s",
@@ -1198,21 +1199,22 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	  if ((l & MASK_JALR) == MATCH_JALR)
 	    maybe_print_address ((void*)0, rs1, 0);
 	  printf ("%s", riscv_gpr_names[rs1]);
-	   GPR[status_gpr] = 63+rs1;
-		     status_gpr++;
+	   //~ GPR[status_gpr] = 31+rs1;
+		     //~ status_gpr++;
 	  break;
 
 	case 't':
 	  printf ("%s",
 		 riscv_gpr_names[EXTRACT_OPERAND (RS2, l)]);
-		 GPR[status_gpr] = 63+EXTRACT_OPERAND (RS2, l);
+		 GPR[status_gpr] = 31+EXTRACT_OPERAND (RS2, l);
 		     status_gpr++;
 	  break;
 
 	case 'u':
 	  printf ("0x%x",
 		 (unsigned)EXTRACT_UTYPE_IMM (l) >> RISCV_IMM_BITS);
-		 
+		 	      	immediatedata = (unsigned)EXTRACT_UTYPE_IMM (l) >> RISCV_IMM_BITS;
+
 	  break;
 
 	case 'm':
@@ -1253,36 +1255,41 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	  //~ info->target = EXTRACT_UJTYPE_IMM (l) + pc;
 	  // immediate here 
 	  //~ (*info->print_address_func) (info->target, info);
+	  printf("immediate data \n");
 	  immediatedata = EXTRACT_UJTYPE_IMM (l) + pc;
+	  
 	  break;
 
 	case 'p':
 	  //~ info->target = EXTRACT_SBTYPE_IMM (l) + pc;
 	  // poitner adresse
 	  //~ (*info->print_address_func) (info->target, info);
+	  	  printf("immediate data \n");
+
 	  	  immediatedata = EXTRACT_SBTYPE_IMM (l) + pc;
 
 	  break;
 
 	case 'd':
-	  if ((l & MASK_AUIPC) == MATCH_AUIPC)
+	  if ((l & MASK_AUIPC) == MATCH_AUIPC) {
 	    //~ pd->hi_addr[rd] = pc + EXTRACT_UTYPE_IMM (l);
 	    // immediate ere 
+			printf("immediate data \n");
 			immediatedata = pc + EXTRACT_UTYPE_IMM (l);
-				  	  
 
-	  else if ((l & MASK_LUI) == MATCH_LUI)
+
+	  } else if ((l & MASK_LUI) == MATCH_LUI) {
 	    //~ pd->hi_addr[rd] = EXTRACT_UTYPE_IMM (l);
 	    // immediate increment attention 
-			 immediatedata = EXTRACT_UTYPE_IMM (l);
+			immediatedata = EXTRACT_UTYPE_IMM (l);
 
 
-	  else if ((l & MASK_C_LUI) == MATCH_C_LUI)
+	   } else if ((l & MASK_C_LUI) == MATCH_C_LUI){
 	    //~ pd->hi_addr[rd] = EXTRACT_RVC_LUI_IMM (l);
 	    							  	  immediatedata = EXTRACT_RVC_LUI_IMM (l);
-
+}
 	  printf ("%s", riscv_gpr_names[rd]);
-	   GPR[status_gpr] = 63+rd;
+	   GPR[status_gpr] = 31+rd;
 		     status_gpr++;
 	  break;
 
@@ -1368,8 +1375,12 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	}
     }
     if(insn->gpraction != 0) {
-
-	  chiara_action_reg(GPR[0],GPR[1],GPR[3],insn->gpraction,RISCV,immediatedata);  
+	printf("GPR0 %d \n",GPR[0]);
+	printf("GPR1 %d \n",GPR[1]);
+	printf("GPR2 %d \n",GPR[2]);
+	printf("GPR3 %d \n",GPR[3]);
+	printf("immediate %d \n",immediatedata);
+	  chiara_action_reg(GPR[0],GPR[1],GPR[2],insn->gpraction,RISCV,immediatedata);  
 	
 		
 }
@@ -1393,27 +1404,16 @@ void chiara_parse_riscv_instruction(unsigned long long instruction) {
 	}	
 }
 void chiara_emul_riscv(unsigned char *instruction,int size) {
-	
+	set_default_riscv_dis_options();
 	pointer_riscv = instruction;
+int size_4 = size/4;
 
-int size_ofinsn = instruction +size;
-long statusarray=0;
-	long shiftnum=0;
-	unsigned long long *instructionbuiled = malloc(64);
-	for(;pointer_riscv!= size_ofinsn;pointer_riscv++) {
-		*instructionbuiled |= *pointer_riscv << shiftnum;
-		if(shiftnum == 56) {
-			
-			chiara_parse_riscv_instruction(*instructionbuiled);
-			free(instructionbuiled);
-			instructionbuiled = malloc(64);
-			shiftnum = 0;
-			} else {
-		shiftnum += 8;
-	}
-		
+for(int x = 0;x<size_4;x++,pointer_riscv++) {
+	chiara_parse_riscv_instruction(*pointer_riscv);
+	
+}
 		
 		}
 
 
-}
+

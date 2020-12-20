@@ -498,7 +498,7 @@ if(tocheck1->typeofgpr==GPR64BITS) {
 
 }	
 void chiara_action_reg(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded) {
-	
+
 	switch(architecture) {
 		
 		case X86_IMAGE:

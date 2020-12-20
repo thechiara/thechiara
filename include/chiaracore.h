@@ -100,3 +100,4 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 void chiara_init_iso(unsigned char*file,unsigned long sizeofiso, char *argvstring);
 void chiara_extract_elf (char *structheader,int unused2);
 void chiara_emul_x86(unsigned char *instruction,int size);
+void chiara_emul_riscv(unsigned char *instruction,int size);

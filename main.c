@@ -45,6 +45,7 @@
 #define CHIARA_EXTRACT_PE 1<<2
 #define CHIARA_EXTRACT_ISO 1<<3
 #define CHIARA_EXTRACT_RAWX86 1<<4
+#define CHIARA_EXTRACT_RAWRISCV 1<<5
 
 
 struct thechiaradecrypt{
@@ -88,9 +89,9 @@ int end = lseek(decrypt.file,0,SEEK_END );
 unsigned  char  *gaspard = malloc(end);	
 	
 int size = 	read(decrypt.file,gaspard,end);
+close(decrypt.file);
 
 decrypt.call(gaspard,end);	
-close(decrypt.file);
 
 }
 	
@@ -138,7 +139,21 @@ status++;
 		}		
 } else if (strcmp(argv[1],"-iso") == 0) {
 	return chiara_parse_argv_iso(argn,argv);
-} else {
+} else if (strcmp(argv[status],"-rawriscv") == 0) {
+	
+status++;
+	decrypt.arguments |=  CHIARA_EXTRACT_RAWRISCV;
+	if(status != argn) {
+		printf("We will decrypt raw riscv file  : %s \n",argv[status]);
+		decrypt.file  = open(argv[status],O_RDONLY);
+		decrypt.call = chiara_emul_riscv;
+		} else {
+		printf("You don't provide a  file thechiara STOP\n");	
+			exit(1);
+		}		
+}
+
+else {
 	status++;
 	
 }
