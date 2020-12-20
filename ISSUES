@@ -1,0 +1,26 @@
+//issues.txt 
+
+
+# on x86 
+
+*the immediate value doesn't work 
+
+# on elf 
+
+* the Elliot's implementation of elf is buggy rewrite it 
+
+# on pe support
+
+* the implementation doesn't work 
+
+# on arm 
+
+* need to reread the basic alu instruction supported because I don't know if 
+
+
+
+
+
+
+if you know a problem please write it here and commit !! 
+

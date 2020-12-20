@@ -1,0 +1,34 @@
+TODO
+
+# on elf 
+
+rewrite 
+
+# on chiaracore 
+
+write the fpu support and the memory support 
+
+Elliot will write the fpu support very soon
+
+# on all architectures 
+
+reread the basic intepretation that support by chiara on it 
+
+especially, arm target because Elliot think there are a lot of bizarre things 
+
+
+
+
+
+
+
+
+
+
+# and ...
+
+
+Test test test thechiara to discover new bugs 
+
+write program , compile it run it and see what append ! 
+

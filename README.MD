@@ -1,9 +1,20 @@
-#THe chiara translator program 
+# The chiara translator program 
 
 Writed by Elliot-Gaspard COURCHINOUX
 
-Writed to translate x86 code to chiarasm to emulate it after 
+This program uses libopcodes from binutils thanks to binutils !!! 
 
-It use several opensource project to works 
-Thanks to them !
+to compile : 
+
+'make'
+
+to install 
+
+'make install'
+
+consult issues.txt to see the know issues 
+
+
+TO hesitate to contact thechiara team  and to contribute to thechiara project !
+
 
