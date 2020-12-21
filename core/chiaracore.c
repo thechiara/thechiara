@@ -927,3 +927,14 @@ return;
 		
 		}
 }
+/* 
+ * FPU SUPPORT
+ * 
+ * 
+ * */
+
+
+void chiara_action_reg_fpu(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,double datahardcoded) {
+
+
+}
