@@ -28,7 +28,7 @@ thechiara
 ```
 thechiara will show to you basic usage of the program
 
-# An example of intepretation command : 
+# An example of thechiara command's : 
 
 
 ```
