@@ -75,10 +75,18 @@ struct chiara_compute_global global_struct;
 #define ACTION_BSWAPLEFT 0x15 // reverse byte order 
 #define ACTION_MULNORMAL 0x16 
 
+
+
+
+
+
 #define GPR8BITS 1
 #define GPR16BITS 2
 #define GPR32BITS 3
 #define GPR64BITS 4
+
+#define GPRFLOAT  5
+#define GPRDOUBLE 6
 
 #define NODATA 0
 // first reg val,second is the second reg,third is the third reg ,action is the action perfomed on xor or ? , architecture is the source architecture x86p powerpc ?,datahardcoded is usefull for MOV AND DIP operation 

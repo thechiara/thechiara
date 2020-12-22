@@ -932,8 +932,80 @@ return;
  * 
  * 
  * */
+struct chiara_fpu_gpr_organization{
+	unsigned char typeofgpr;
+	unsigned char position;
+	double data;
 
 
+	};
+ struct chiara_fpu_gpr_organization fpu_gpr_orga_array[64] = { 
+	 {.typeofgpr=GPRFLOAT,.position=0},
+{.typeofgpr=GPRFLOAT,.position=1},
+{.typeofgpr=GPRFLOAT,.position=2},
+{.typeofgpr=GPRFLOAT,.position=3},
+{.typeofgpr=GPRFLOAT,.position=4},
+{.typeofgpr=GPRFLOAT,.position=5},
+{.typeofgpr=GPRFLOAT,.position=6},
+{.typeofgpr=GPRFLOAT,.position=7},
+{.typeofgpr=GPRFLOAT,.position=8},
+{.typeofgpr=GPRFLOAT,.position=9},
+{.typeofgpr=GPRFLOAT,.position=10},
+{.typeofgpr=GPRFLOAT,.position=11},
+{.typeofgpr=GPRFLOAT,.position=12},
+{.typeofgpr=GPRFLOAT,.position=13},
+{.typeofgpr=GPRFLOAT,.position=14},
+{.typeofgpr=GPRFLOAT,.position=15},
+{.typeofgpr=GPRFLOAT,.position=16},
+{.typeofgpr=GPRFLOAT,.position=17},
+{.typeofgpr=GPRFLOAT,.position=18},
+{.typeofgpr=GPRFLOAT,.position=19},
+{.typeofgpr=GPRFLOAT,.position=20},
+{.typeofgpr=GPRFLOAT,.position=21},
+{.typeofgpr=GPRFLOAT,.position=22},
+{.typeofgpr=GPRFLOAT,.position=23},
+{.typeofgpr=GPRFLOAT,.position=24},
+{.typeofgpr=GPRFLOAT,.position=25},
+{.typeofgpr=GPRFLOAT,.position=26},
+{.typeofgpr=GPRFLOAT,.position=27},
+{.typeofgpr=GPRFLOAT,.position=28},
+{.typeofgpr=GPRFLOAT,.position=29},
+{.typeofgpr=GPRFLOAT,.position=30},
+{.typeofgpr=GPRFLOAT,.position=31},
+{.typeofgpr=GPRDOUBLE,.position=0},
+{.typeofgpr=GPRDOUBLE,.position=1},
+{.typeofgpr=GPRDOUBLE,.position=2},
+{.typeofgpr=GPRDOUBLE,.position=3},
+{.typeofgpr=GPRDOUBLE,.position=4},
+{.typeofgpr=GPRDOUBLE,.position=5},
+{.typeofgpr=GPRDOUBLE,.position=6},
+{.typeofgpr=GPRDOUBLE,.position=7},
+{.typeofgpr=GPRDOUBLE,.position=8},
+{.typeofgpr=GPRDOUBLE,.position=9},
+{.typeofgpr=GPRDOUBLE,.position=10},
+{.typeofgpr=GPRDOUBLE,.position=11},
+{.typeofgpr=GPRDOUBLE,.position=12},
+{.typeofgpr=GPRDOUBLE,.position=13},
+{.typeofgpr=GPRDOUBLE,.position=14},
+{.typeofgpr=GPRDOUBLE,.position=15},
+{.typeofgpr=GPRDOUBLE,.position=16},
+{.typeofgpr=GPRDOUBLE,.position=17},
+{.typeofgpr=GPRDOUBLE,.position=18},
+{.typeofgpr=GPRDOUBLE,.position=19},
+{.typeofgpr=GPRDOUBLE,.position=20},
+{.typeofgpr=GPRDOUBLE,.position=21},
+{.typeofgpr=GPRDOUBLE,.position=22},
+{.typeofgpr=GPRDOUBLE,.position=23},
+{.typeofgpr=GPRDOUBLE,.position=24},
+{.typeofgpr=GPRDOUBLE,.position=25},
+{.typeofgpr=GPRDOUBLE,.position=26},
+{.typeofgpr=GPRDOUBLE,.position=27},
+{.typeofgpr=GPRDOUBLE,.position=28},
+{.typeofgpr=GPRDOUBLE,.position=29},
+{.typeofgpr=GPRDOUBLE,.position=30},
+{.typeofgpr=GPRDOUBLE,.position=31},
+	 
+ };
 void chiara_action_reg_fpu(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,double datahardcoded) {
 
 
