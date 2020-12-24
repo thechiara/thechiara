@@ -27,6 +27,7 @@ Copyright (C) 2020 Elliot-Gaspard COURCHINOUX
 #include <limits.h>
 #include <unistd.h>
 #include <byteswap.h>
+#include <float.h> 
 void chiara_clear_flags( ) {
 			global_struct.flags.equal =0;
 			global_struct.flags.carry =0;
@@ -219,6 +220,79 @@ struct chiara_gpr_organization{
 {.typeofgpr=GPR64BITS,.position=31},	
 };
 
+void chiara_check_immediate_gpr( struct  chiara_gpr_organization *tocheck1, long long data) {
+	
+	if(data <0) {
+			global_struct.flags.zero =1;
+			}
+if(tocheck1->typeofgpr==GPR64BITS) {
+		// no check to do 
+	
+			if(data & 1<<63) {
+				
+			global_struct.flags.carry =1;
+
+				
+				}
+			
+		 if ( data < -9223372036854775808 ||  data <  9223372036854775807) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		}
+	
+	if(tocheck1->typeofgpr==GPR32BITS) {
+		// verifier l'overflow
+		
+		 if ( data < -2147483648 ||  data < 2147483647) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(data <0) {
+			global_struct.flags.zero =1;
+			}
+	if(data & 1<<31) {
+				
+			global_struct.flags.carry =1;
+
+				
+				}	
+		}
+	if(tocheck1->typeofgpr==GPR16BITS) {
+		// verifier l'overflow
+		
+		 if ( data < -32768 ||  data < 32767) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+	
+	if(data <0) {
+			global_struct.flags.zero =1;
+			}
+	
+		if(data & 1<<15) {
+				
+			global_struct.flags.carry =1;
+	}	
+	
+		}
+	if(tocheck1->typeofgpr==GPR8BITS) {
+		// verifier l'overflow
+		 if ( data < -128 ||  data < 127) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			}
+	if(data <0) {
+			global_struct.flags.zero =1;
+	}	
+	if(data & 1<<7) {
+				
+			global_struct.flags.carry =1;
+	}			
+		
+		}	
+	
+}
 
 void chiara_check_gpr(struct  chiara_gpr_organization *tocheck1,struct  chiara_gpr_organization *tocheck2,struct  chiara_gpr_organization *tocheck3,long long data) {
 chiara_clear_flags();
@@ -227,6 +301,10 @@ chiara_clear_flags();
 		if(tocheck1->data <0) {
 			global_struct.flags.zero =1;
 			}
+			 if ( tocheck1->data < -9223372036854775808 ||  tocheck1->data <  9223372036854775807) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
 			if(tocheck1->data & 1<<63) {
 				
 			global_struct.flags.carry =1;
@@ -292,6 +370,10 @@ chiara_clear_flags();
 		if(tocheck2->data <0) {
 			global_struct.flags.zero =1;
 			}
+			 if ( tocheck2->data < -9223372036854775808 ||  tocheck2->data <  9223372036854775807) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
 	if(tocheck2->data & 1<<63) {
 				
 			global_struct.flags.carry =1;
@@ -360,7 +442,10 @@ chiara_clear_flags();
 			global_struct.flags.zero =1;
 		
 			}
-	
+ if ( tocheck3->data < -9223372036854775808 ||  tocheck3->data <  9223372036854775807) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}	
 		}
 	
 	if(tocheck3->typeofgpr==GPR32BITS) {
@@ -414,74 +499,10 @@ chiara_clear_flags();
 }
 // data check
 if(data != NODATA) {
-		if(data <0) {
-			global_struct.flags.zero =1;
-			}
-if(tocheck1->typeofgpr==GPR64BITS) {
-		// no check to do 
-	
-			if(data & 1<<63) {
-				
-			global_struct.flags.carry =1;
+	chiara_check_immediate_gpr(tocheck1,data);
+		
 
-				
-				}
-			
-		}
-	
-	if(tocheck1->typeofgpr==GPR32BITS) {
-		// verifier l'overflow
-		
-		 if ( data < -2147483648 ||  data < 2147483647) {			
-				global_struct.flags.overflow =1;
-				global_struct.flags.carry =1;
-	}
-		if(data <0) {
-			global_struct.flags.zero =1;
-			}
-	if(data & 1<<31) {
-				
-			global_struct.flags.carry =1;
-
-				
-				}	
-		}
-	if(tocheck1->typeofgpr==GPR16BITS) {
-		// verifier l'overflow
-		
-		 if ( data < -32768 ||  data < 32767) {			
-				global_struct.flags.overflow =1;
-				global_struct.flags.carry =1;
-	}
-	
-	if(data <0) {
-			global_struct.flags.zero =1;
-			}
-	
-		if(data & 1<<15) {
-				
-			global_struct.flags.carry =1;
-	}	
-	
-		}
-	if(tocheck1->typeofgpr==GPR8BITS) {
-		// verifier l'overflow
-		 if ( data < -128 ||  data < 127) {			
-				global_struct.flags.overflow =1;
-				global_struct.flags.carry =1;
-			}
-	if(data <0) {
-			global_struct.flags.zero =1;
-	}	
-	if(data & 1<<7) {
-				
-			global_struct.flags.carry =1;
-	}			
-		
-		}	
-	
 }
-
 }	
 void chiara_action_reg(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded) {
 
@@ -1008,9 +1029,126 @@ struct chiara_fpu_gpr_organization{
 {.typeofgpr=GPRDOUBLE,.position=31},
 	 
  };
+void chiara_check_immediate_gpr_fpu( struct  chiara_fpu_gpr_organization *tocheck1, double data) {
+	
+	if(data <0) {
+			global_struct.flags.zero =1;
+			}
+			
+if(tocheck1->typeofgpr==GPRDOUBLE) {
+		 if ( tocheck1->data < DBL_MIN   ||  tocheck1->data < DBL_MAX ) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	} 
+	
+	 if (data < DBL_MIN ||  data < DBL_MAX) {
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+				
+				}
+		if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+			}
+	
+	
+		}
+	
+	if(tocheck1->typeofgpr==GPRFLOAT) {
+		
+		 if ( tocheck1->data < FLT_MIN ||  tocheck1->data < FLT_MAX) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			} 
+			
+			 if (data < FLT_MIN ||  data < FLT_MAX) {
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+				
+				}
+	if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+			}
+		}			
+}
  void chiara_check_gpr_fpu(struct  chiara_fpu_gpr_organization *tocheck1,struct  chiara_fpu_gpr_organization *tocheck2,struct  chiara_fpu_gpr_organization *tocheck3,double data) {
+if(tocheck1->typeofgpr==GPRDOUBLE) {
+			 if ( tocheck1->data < DBL_MIN   ||  tocheck1->data < DBL_MAX ) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+			}
+			
+			
+	
+		}
+	
+	if(tocheck1->typeofgpr==GPRFLOAT) {
+		// verifier l'overflow
+		
+		 if ( tocheck1->data < FLT_MIN  ||  tocheck1->data < FLT_MAX ) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(tocheck1->data <0) {
+			global_struct.flags.zero =1;
+			}
+	
+		}
+if(tocheck2!=0) {
+	if(tocheck2->typeofgpr==GPRDOUBLE) {
+		 if ( tocheck2->data < DBL_MIN   ||  tocheck2->data < DBL_MAX ) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(tocheck2->data <0) {
+			global_struct.flags.zero =1;
+			}
 	
 	
+		}
+	
+	if(tocheck2->typeofgpr==GPRFLOAT) {
+		
+		 if ( tocheck2->data < FLT_MIN ||  tocheck2->data < FLT_MAX) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			}
+	if(tocheck2->data <0) {
+			global_struct.flags.zero =1;
+			}
+		}
+}	
+if(tocheck3!=0) {
+	if(tocheck3->typeofgpr==GPRDOUBLE) {
+		 if ( tocheck3->data < DBL_MIN   ||  tocheck3->data < DBL_MAX ) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+	}
+		if(tocheck3->data <0) {
+			global_struct.flags.zero =1;
+			}
+	
+	
+		}
+	
+	if(tocheck3->typeofgpr==GPRFLOAT) {
+		
+		 if ( tocheck3->data < FLT_MIN ||  tocheck3->data < FLT_MAX) {			
+				global_struct.flags.overflow =1;
+				global_struct.flags.carry =1;
+			}
+	if(tocheck3->data <0) {
+			global_struct.flags.zero =1;
+			}
+		}
+}	
+	if(data != NODATA) {
+		
+chiara_check_immediate_gpr_fpu(tocheck1,data);		
+		
+}
 }
 void chiara_action_reg_fpu(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,double datahardcoded) {
 	switch(architecture) {
