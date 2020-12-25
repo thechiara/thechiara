@@ -34,7 +34,7 @@ static unsigned char *instruction_pointer;
 static unsigned long index_instruction;
 
 #define INTERNAL_DISASSEMBLER_ERROR "thechiara x86 error"
-
+/* http://ref.x86asm.net/coder32.html   -> good doc for x86 isa*/
 typedef long bfd_signed_vma; 
 
 
@@ -11309,18 +11309,18 @@ static const unsigned char float_mem_mode[] = {
 static const struct dis386 float_reg[][8] = {
   /* d8 */
   {
-    { "fadd",	{ ST, STi }, 0 },
-    { "fmul",	{ ST, STi }, 0 },
-    { "fcom",	{ STi }, 0 },
+    { "fadd",	{ ST, STi }, 0 ,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_ADD},
+    { "fmul",	{ ST, STi }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_MULNORMAL },
+    { "fcom",	{ STi }, 0 }, // compare will be implemente after
     { "fcomp",	{ STi }, 0 },
-    { "fsub",	{ ST, STi }, 0 },
+    { "fsub",	{ ST, STi }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_SUB },
     { "fsubr",	{ ST, STi }, 0 },
-    { "fdiv",	{ ST, STi }, 0 },
-    { "fdivr",	{ ST, STi }, 0 },
+    { "fdiv",	{ ST, STi }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_DIV },
+    { "fdivr",	{ ST, STi }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_DIV },
   },
   /* d9 */
   {
-    { "fld",	{ STi }, 0 },
+    { "fld",	{ STi }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_DISP_REG },
     { "fxch",	{ STi }, 0 },
     { FGRPd9_2 },
     { Bad_Opcode },
@@ -11353,8 +11353,8 @@ static const struct dis386 float_reg[][8] = {
   },
   /* dc */
   {
-    { "fadd",	{ STi, ST }, 0 },
-    { "fmul",	{ STi, ST }, 0 },
+    { "fadd",	{ STi, ST }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_ADD },
+    { "fmul",	{ STi, ST }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_MULNORMAL },
     { Bad_Opcode },
     { Bad_Opcode },
     { "fsub{!M|r}",	{ STi, ST }, 0 },
@@ -11375,8 +11375,8 @@ static const struct dis386 float_reg[][8] = {
   },
   /* de */
   {
-    { "faddp",	{ STi, ST }, 0 },
-    { "fmulp",	{ STi, ST }, 0 },
+    { "faddp",	{ STi, ST }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_ADD },
+    { "fmulp",	{ STi, ST }, 0,.to_chiara_gpr=chiara_action_reg_fpu,.gpraction=ACTION_MULNORMAL },
     { Bad_Opcode },
     { FGRPde_3 },
     { "fsub{!M|r}p",	{ STi, ST }, 0 },
