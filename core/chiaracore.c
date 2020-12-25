@@ -1155,9 +1155,37 @@ void chiara_action_reg_fpu(unsigned long first,unsigned long second,unsigned lon
 		
 		case X86_IMAGE:
 		
-		if(action == ACTION_AND) {
+	 if(action == ACTION_FPU_TO_INT) {
 
-			 if(action == ACTION_ADD) {
+if(datahardcoded != NODATA) {
+	chiara_check_gpr_fpu(&fpu_gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			// ACTION_FPU_TO_INT reg
+			gpr_orga_array[first].data = datahardcoded;
+return;
+}	
+				
+						chiara_check_gpr_fpu(&fpu_gpr_orga_array[first],&fpu_gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_FPU_TO_INT reg
+						gpr_orga_array[first].data = fpu_gpr_orga_array[second].data;
+
+}			else  if(action == ACTION_FPU_TO_INTUNSIGNED) {
+if(datahardcoded != NODATA) {
+	chiara_check_gpr_fpu(&fpu_gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
+
+			// ACTION_FPU_TO_INT reg
+			gpr_orga_array[first].data = datahardcoded;
+return;
+}	
+				
+						chiara_check_gpr_fpu(&fpu_gpr_orga_array[first],&fpu_gpr_orga_array[second],(void*)0,NODATA);
+
+			// ACTION_FPU_TO_INT reg
+						gpr_orga_array[first].data = (unsigned)fpu_gpr_orga_array[second].data;	
+	
+	
+	} else  if(action == ACTION_ADD) {
 
 if(datahardcoded != NODATA) {
 	chiara_check_gpr_fpu(&fpu_gpr_orga_array[first],(void*)0,(void*)0,datahardcoded);
@@ -1445,4 +1473,4 @@ return;
 		}
 
 }
-}
+

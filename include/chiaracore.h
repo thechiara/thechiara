@@ -74,6 +74,8 @@ struct chiara_compute_global global_struct;
 #define ACTION_BSWAPRIGHT 0x14 // reverse byte order 
 #define ACTION_BSWAPLEFT 0x15 // reverse byte order 
 #define ACTION_MULNORMAL 0x16 
+#define ACTION_FPU_TO_INT 0x17 
+#define ACTION_FPU_TO_INTUNSIGNED 0x18 
 
 
 
@@ -91,6 +93,7 @@ struct chiara_compute_global global_struct;
 #define NODATA 0
 // first reg val,second is the second reg,third is the third reg ,action is the action perfomed on xor or ? , architecture is the source architecture x86p powerpc ?,datahardcoded is usefull for MOV AND DIP operation 
 void chiara_action_reg(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded);
+void chiara_action_reg_fpu(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,double datahardcoded);
 void chiara_init_iso(unsigned char*file,unsigned long sizeofiso, char *argvstring);
 void chiara_extract_elf (char *structheader,int unused2);
 void chiara_emul_x86(unsigned char *instruction,int size);

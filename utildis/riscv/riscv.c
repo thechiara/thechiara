@@ -555,7 +555,7 @@ const struct riscv_opcode riscv_opcodes[] =
 {"fmul.s",     0, INSN_CLASS_F,   "D,S,T",  MATCH_FMUL_S | MASK_RM, MASK_FMUL_S | MASK_RM, match_opcode, 0 , .to_chiara_gpr = chiara_action_reg_fpu, .gpraction = ACTION_MULNORMAL },
 {"fmul.s",     0, INSN_CLASS_F,   "D,S,T,m",  MATCH_FMUL_S, MASK_FMUL_S, match_opcode, 0, .to_chiara_gpr = chiara_action_reg_fpu, .gpraction = ACTION_MULNORMAL },
 {"fdiv.s",     0, INSN_CLASS_F,   "D,S,T",  MATCH_FDIV_S | MASK_RM, MASK_FDIV_S | MASK_RM, match_opcode, 0, .to_chiara_gpr = chiara_action_reg_fpu, .gpraction = ACTION_DIV },
-{"fdiv.s",     0, INSN_CLASS_F,   "D,S,T,m",  MATCH_FDIV_S, MASK_FDIV_S, match_opcode, 0 , match_opcode, 0, .to_chiara_gpr = chiara_action_reg_fpu, .gpraction = ACTION_DIV},
+{"fdiv.s",     0, INSN_CLASS_F,   "D,S,T,m",  MATCH_FDIV_S, MASK_FDIV_S, match_opcode, 0 , .to_chiara_gpr = chiara_action_reg_fpu, .gpraction = ACTION_DIV},
 {"fsqrt.s",    0, INSN_CLASS_F,   "D,S",  MATCH_FSQRT_S | MASK_RM, MASK_FSQRT_S | MASK_RM, match_opcode, 0 },
 {"fsqrt.s",    0, INSN_CLASS_F,   "D,S,m",  MATCH_FSQRT_S, MASK_FSQRT_S, match_opcode, 0 },
 {"fmin.s",     0, INSN_CLASS_F,   "D,S,T",  MATCH_FMIN_S, MASK_FMIN_S, match_opcode, 0 },
