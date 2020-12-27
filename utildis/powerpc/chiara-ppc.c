@@ -8460,8 +8460,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"mtfsb0",	XRC(63,70,0),	XRARB_MASK,  COM,	PPCVLE,		{BTF}},
 {"mtfsb0.",	XRC(63,70,1),	XRARB_MASK,  COM,	PPCVLE,		{BTF}},
 
-{"fmr",		XRC(63,72,0),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}},
-{"fmr.",	XRC(63,72,1),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}},
+{"fmr",		XRC(63,72,0),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}, .to_chiara_gpr = chiara_action_reg_fpu,.gpraction = ACTION_DISP_REG_COPY},
+{"fmr.",	XRC(63,72,1),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}, .to_chiara_gpr = chiara_action_reg_fpu,.gpraction = ACTION_DISP_REG_COPY},
 
 {"dscriq",	ZRC(63,98,0), Z_MASK|Q_MASK, POWER6,	PPCVLE,		{FRTp, FRAp, SH16}},
 {"dscriq.",	ZRC(63,98,1), Z_MASK|Q_MASK, POWER6,	PPCVLE,		{FRTp, FRAp, SH16}},
@@ -8510,8 +8510,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"dctqpq",	XRC(63,258,0), X_MASK|Q_MASK, POWER6,	PPCVLE,		{FRTp, FRB}},
 {"dctqpq.",	XRC(63,258,1), X_MASK|Q_MASK, POWER6,	PPCVLE,		{FRTp, FRB}},
 
-{"fabs",	XRC(63,264,0),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}},
-{"fabs.",	XRC(63,264,1),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}},
+{"fabs",	XRC(63,264,0),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}, .to_chiara_gpr = chiara_action_reg_fpu,.gpraction = ACTION_DISP_REG_COPY},
+{"fabs.",	XRC(63,264,1),	XRA_MASK,    COM,	PPCEFS|PPCVLE,	{FRT, FRB}, .to_chiara_gpr = chiara_action_reg_fpu,.gpraction = ACTION_DISP_REG_COPY},
 
 {"dctfixq",	XRC(63,290,0),	X_MASK,	     POWER6,	PPCVLE,		{FRT, FRBp}},
 {"dctfixq.",	XRC(63,290,1),	X_MASK,	     POWER6,	PPCVLE,		{FRT, FRBp}},
@@ -10689,15 +10689,15 @@ for(int x = 0;x<powerpc_num_opcodes;x++) {
 void chiara_emul_bigendian_ppc(unsigned char *instruction,int size) {
 	long statusarray=0;
 	long shiftnum=0;
-	unsigned long long *instructionbuiled = malloc(64);
+	unsigned long long *instructionbuiled = malloc(31);
 	for(;statusarray<size;statusarray++) {
 		*instructionbuiled |= instruction[statusarray] << shiftnum;
-		if(shiftnum == 56) {
+		if(shiftnum == 24) {
 			// compile instrction 
 			
 			chiara_parse_ppc_instruction(bswap_64(*instructionbuiled));
 			free(instructionbuiled);
-			instructionbuiled = malloc(64);
+			instructionbuiled = malloc(31);
 			shiftnum = 0;
 			}else {
 		shiftnum += 8;
@@ -10710,15 +10710,15 @@ void chiara_emul_bigendian_ppc(unsigned char *instruction,int size) {
 void chiara_emul_littleendian_ppc(unsigned char *instruction,int size) {
 	long statusarray=0;
 	long shiftnum=0;
-	unsigned long long *instructionbuiled = malloc(64);
+	unsigned long long *instructionbuiled = malloc(31);
 	for(;statusarray<size;statusarray++) {
 		*instructionbuiled |= instruction[statusarray] << shiftnum;
-		if(shiftnum == 56) {
+		if(shiftnum == 24) {
 			// compile instrction 
 			
 			chiara_parse_ppc_instruction(*instructionbuiled);
 			free(instructionbuiled);
-			instructionbuiled = malloc(64);
+			instructionbuiled = malloc(31);
 			shiftnum = 0;
 			} else {
 		shiftnum += 8;
