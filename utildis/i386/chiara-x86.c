@@ -276,6 +276,7 @@ struct chiara_x86 {
 struct chiara_x86  chiara_x86	;
 
 void chiara_emul_x86(unsigned char *instruction,int size) {
+	/*START BUG SEARCH HERE */
 	start_codep = instruction;
 	obufp = instruction;
 	end_codep = instruction+size;
@@ -302,6 +303,8 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
       separator_char = ',';
       scale_char = ',';
       size_file_insn = size;
+      	/*END BUG SEARCH HERE */
+
 	for(;statusarray<size;statusarray++,index_instruction++,codep++) {
 					//~ while(end_codep!=codep) {
 					chiara_truex86(codep);
@@ -334,7 +337,7 @@ FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 	
 	
 	if(addr >= end_codep) {
-		printf("X86 OUT OF RANGE \n");
+		printf("X86 OUT OF RANGE \n codep : %x end_codep %x adrr %x",codep,end_codep,addr);
 		return 1;
 		
 		}
