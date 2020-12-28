@@ -1,1 +1,1 @@
-mov ebx,0xff
+add ebx,4

@@ -8,7 +8,11 @@ rewrite
 
 write the fpu support and the memory support 
 
-Elliot will write the fpu support very soon
+the fpu is now supported except in alpha dec 
+
+need to test 
+
+road to meomorys upport and condition and internal processor instruction (like conditional jump, interrupts etc etc )
 
 
 # on all architectures 
@@ -21,7 +25,11 @@ especially, arm target because Elliot thinks there are a lot of bizarre things o
 
 
 
+# on ppc,arm and riscv 
 
+implemente instruction like multiply and substract / addition /divide etc etc 
+
+because I think they can be considered as basic ALU instructions because is recurent on risc architectures 
 
 
 
