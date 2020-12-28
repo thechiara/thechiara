@@ -278,7 +278,7 @@ struct chiara_x86  chiara_x86	;
 void chiara_emul_x86(unsigned char *instruction,int size) {
 	/*START BUG SEARCH HERE */
 	start_codep = instruction;
-	obufp = instruction;
+	obufp = instruction; // bug ????
 	end_codep = instruction+size;
 	codep = instruction;
 	index_instruction = 0;
@@ -12632,7 +12632,7 @@ OP_E_memory (int bytemode, int sizeflag)
 
       if (havedisp || (intel_syntax && riprel))
 	{
-	  *obufp++ = open_char;
+	  *obufp++ = open_char; // bug ???
 	  if (intel_syntax && riprel)
 	    {
 	      set_op (disp, 1);
