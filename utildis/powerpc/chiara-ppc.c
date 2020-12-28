@@ -10576,7 +10576,7 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 	for(int x = 0;x<powerpc_num_opcodes;x++) {
 
 		if(PPC_OP(powerpc_opcodes[x].opcode) == opcodebasic) {
-													printf("FOUND %s \n ",powerpc_opcodes[x].name);
+													printf("PPC :FOUND %s \n ",powerpc_opcodes[x].name);
 
 			int status = 0;
 							if(*powerpc_opcodes[x].to_chiara_gpr != 0) {
@@ -10589,7 +10589,7 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 						
 						if(powerpc_opcodes[x].operands[status] == SI || NSI) {
 							// immediate value 
-							int ERROR_check;
+							int ERROR_check = 0;
 
 							data = powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&ERROR_check);
 							if(ERROR_check != 1) {
@@ -10597,7 +10597,7 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 									
 									}
 							} else {
-								int ERROR_check;
+								int ERROR_check = 0;
 						GPR_data[status_gpr] = powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&ERROR_check);		
 								if(ERROR_check != 1) {
 									printf("PPC : Failed to extract %x FATAL %s %s   \n",instruction, __FILE__, __LINE__);
@@ -10615,6 +10615,8 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 				}
 				powerpc_opcodes[x].to_chiara_gpr(31+GPR_data[0],31+GPR_data[1],31+GPR_data[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,GPR_data);
 			}
+
+return;
 	}	
 }
 }
@@ -10647,7 +10649,7 @@ void chiara_emul_bigendian_ppc(unsigned char *instruction,int size) {
 		if(shiftnum == 24) {
 			// compile instrction 
 			
-			chiara_parse_ppc_instruction(bswap_64(*instructionbuiled));
+			chiara_parse_ppc_instruction(bswap_32(*instructionbuiled));
 			free(instructionbuiled);
 			instructionbuiled = malloc(31);
 			shiftnum = 0;
