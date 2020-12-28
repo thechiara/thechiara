@@ -5246,7 +5246,7 @@ const struct powerpc_opcode powerpc_opcodes[] = {
 {"addi",	OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA0, SI},.to_chiara_gpr = chiara_action_reg,.gpraction = ACTION_ADD},
 {"cal",		OP(14),		OP_MASK,     PWRCOM,	PPCVLE,		{RT, D, RA0}},
 {"subi",	OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, RA0, NSI}},
-{"la",		OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, D, RA0}},
+{"la",		OP(14),		OP_MASK,     PPCCOM,	PPCVLE,		{RT, D, RA0}}, // absolute adress with memory
 
 {"lis",		OP(15),		DRA_MASK,    PPCCOM,	PPCVLE,		{RT, SISIGNOPT}},
 {"liu",		OP(15),		DRA_MASK,    PWRCOM,	PPCVLE,		{RT, SISIGNOPT}},
@@ -10579,93 +10579,45 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 													printf("FOUND %s \n ",powerpc_opcodes[x].name);
 
 			int status = 0;
-
+							if(*powerpc_opcodes[x].to_chiara_gpr != 0) {
+								unsigned long GPR_data[3];
+							long long data;
+							unsigned long status_gpr = 0;
 			while(status!= 8 && powerpc_opcodes[x].operands[status] != 0) {
 				int error;
 				if(*powerpc_operands[powerpc_opcodes[x].operands[status]].extract != 0) {
-					
-				  signed long long valuereturned = 	powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&error);
-						if(error !=1) {
-							if(*powerpc_opcodes[x].to_chiara_gpr != 0) {
-
-
-							if(powerpc_opcodes[x].gpraction==ACTION_NOT) {
-								
-							unsigned long GPR_data[1];
-								unsigned long ERRORarray[1];
-							GPR_data[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
-							GPR_data[1] =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);		
-								
-								if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1) {
-								powerpc_opcodes[x].to_chiara_gpr (31+GPR_data[0],31+GPR_data[1],0,ACTION_NOT,POWERPC_LITTLENDIAN_IMAGE,0);	
-
-								} else {
-									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1]);
-									
-									}
-										
-								} else if(powerpc_opcodes[x].gpraction==ACTION_DISP_REG_COPY) {
-								
-							unsigned long GPR_data[1];
-								unsigned long ERRORarray[1];
-							GPR_data[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
-							GPR_data[1] =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);		
-								
-								if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1) {
-								powerpc_opcodes[x].to_chiara_gpr (31+GPR_data[0],31+GPR_data[1],0,ACTION_DISP_REG_COPY,POWERPC_LITTLENDIAN_IMAGE,0);	
-
-								} else {
-									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1]);
-									
-									}
-										
-								}	else	if(powerpc_opcodes[x].gpraction==ACTION_DISP_REG) {
-								
-								
-								
-							unsigned long GPR_data[1];
-								unsigned long ERRORarray[1];
-							GPR_data[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
-							long long data =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);	
-							if(ERRORarray[0] !=1 ) {
-								powerpc_opcodes[x].to_chiara_gpr (31+GPR_data[0],0,0,ACTION_DISP_REG,POWERPC_LITTLENDIAN_IMAGE,data);
-
-								} else {
-									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x and data %x ",ERRORarray[0],data);
-									
-									}	
-
-									
-									} else {
-								unsigned long GPR[2];
-								unsigned long ERRORarray[2];
-							GPR[0] =	powerpc_operands[powerpc_opcodes[x].operands[0]].extract(instruction,0,&ERRORarray[0]);
-							GPR[1] =	powerpc_operands[powerpc_opcodes[x].operands[1]].extract(instruction,0,&ERRORarray[1]);
-							GPR[2] =	powerpc_operands[powerpc_opcodes[x].operands[2]].extract(instruction,0,&ERRORarray[2]);
 						
-							if(ERRORarray[0] !=1 &&  ERRORarray[1] !=1 &&  ERRORarray[2] !=1) {
-								// problem to mov to gpr 
-							powerpc_opcodes[x].to_chiara_gpr (31+GPR[0],31+GPR[1],31+GPR[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,0);
+						if(powerpc_opcodes[x].operands[status] == SI || NSI) {
+							// immediate value 
+							int ERROR_check;
 
-								} else {
-									printf("FATAL PPC : cannot get data and gpr operands instruction :  %x %x %x",ERRORarray[0],ERRORarray[1],ERRORarray[2]);
+							data = powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&ERROR_check);
+							if(ERROR_check != 1) {
+									printf("PPC : Failed to extract %x FATAL %s %s   \n",instruction, __FILE__, __LINE__);
 									
 									}
-							}	// disp fpu reg 
-								}
-					// We have found our instruction great !
-					break;
-					
-					}
+							} else {
+								int ERROR_check;
+						GPR_data[status_gpr] = powerpc_operands[powerpc_opcodes[x].operands[status]].extract(instruction,0,&ERROR_check);		
+								if(ERROR_check != 1) {
+									printf("PPC : Failed to extract %x FATAL %s %s   \n",instruction, __FILE__, __LINE__);
+									
+									}
+						status_gpr++;		
+						}
+						
+							
+							
 					}
 			
 				status++;
 				
 				}
+				powerpc_opcodes[x].to_chiara_gpr(31+GPR_data[0],31+GPR_data[1],31+GPR_data[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,GPR_data);
 			}
 	}	
 }
-  
+}
 
 void chiara_print_ppc() {
 	
