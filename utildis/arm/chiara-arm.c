@@ -32175,19 +32175,23 @@ for(int x = 0;x<operands_num;x++) {
       DATAIMMEDIAT = inst->operands[x].imm.value;
 
   } else if(inst->operands[x].type ==AARCH64_OPND_Fd || AARCH64_OPND_Fn || AARCH64_OPND_Fm || AARCH64_OPND_Fa || AARCH64_OPND_Ft || AARCH64_OPND_Ft2 ) {
-  GPR[GPRtaked] = 31+inst->operands[x].reglane.regno;
+  GPR[GPRtaked] = inst->operands[x].reglane.regno;
     GPRtaked++;
   
    } else {
-    GPR[GPRtaked] = 63+inst->operands[x].reglane.regno;
+    GPR[GPRtaked] = inst->operands[x].reglane.regno;
     GPRtaked++;
     
   }
   
 }  
    printf("ARM : :call thechiara \n");
-inst->opcode->to_chiara_gpr(GPR[0],GPR[1],GPR[3],inst->opcode->gpraction,ARM_64,DATAIMMEDIAT);
-    
+   if(inst->opcode->to_chiara_gpr == chiara_action_reg_fpu) {
+	   inst->opcode->to_chiara_gpr(32+GPR[0],32+GPR[1],32+GPR[3],inst->opcode->gpraction,ARM_64,DATAIMMEDIAT);
+
+   } else {
+inst->opcode->to_chiara_gpr(96+GPR[0],96+GPR[1],96+GPR[3],inst->opcode->gpraction,ARM_64,DATAIMMEDIAT);
+}
     }
   
 }

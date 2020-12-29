@@ -1067,30 +1067,30 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	    case 'w': /* RS1 x8-x15 */
 	      printf ("%s",
 		     riscv_gpr_names[EXTRACT_OPERAND (CRS1S, l) + 8]);
-		     GPR[status_gpr] = 31+EXTRACT_OPERAND (CRS1S, l) + 8;
+		     GPR[status_gpr] = 96+EXTRACT_OPERAND (CRS1S, l) + 8;
 		     status_gpr++;
 	      break;
 	    case 't': /* RS2 x8-x15 */
 	    case 'x': /* RS2 x8-x15 */
 	      printf ( "%s",
 		     riscv_gpr_names[EXTRACT_OPERAND (CRS2S, l) + 8]);
-		      GPR[status_gpr] = 31+EXTRACT_OPERAND (CRS1S, l) + 8;
+		      GPR[status_gpr] = 96+EXTRACT_OPERAND (CRS1S, l) + 8;
 		     status_gpr++;
 	      break;
 	    case 'U': /* RS1, constrained to equal RD */
 	      printf ("%s", riscv_gpr_names[rd]);
-	       GPR[status_gpr] = 31+rd;
+	       GPR[status_gpr] = 96+rd;
 		     status_gpr++;
 	      break;
 	    case 'c': /* RS1, constrained to equal sp */
 	      printf ("%s", riscv_gpr_names[X_SP]);
-	       GPR[status_gpr] = 31+X_SP;
+	       GPR[status_gpr] = 96+X_SP;
 		     status_gpr++;
 	      break;
 	    case 'V': /* RS2 */
 	      printf ( "%s",
 		     riscv_gpr_names[EXTRACT_OPERAND (CRS2, l)]);
-		     GPR[status_gpr] = 31+EXTRACT_OPERAND (CRS2, l);
+		     GPR[status_gpr] = 96+EXTRACT_OPERAND (CRS2, l);
 		     status_gpr++;
 	      break;
 	    case 'i':
@@ -1171,13 +1171,13 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	    case 'T': /* floating-point RS2 */
 	      printf ("%s",
 		     riscv_fpr_names[EXTRACT_OPERAND (CRS2, l)]);
-		    GPR[status_gpr] = EXTRACT_OPERAND (CRS2, l);
+		    GPR[status_gpr] = 32+EXTRACT_OPERAND (CRS2, l);
 		     status_gpr++;
 	      break;
 	    case 'D': /* floating-point RS2 x8-x15 */
 	      printf ("%s",
 		     riscv_fpr_names[EXTRACT_OPERAND (CRS2S, l) + 8]);
-		      GPR[status_gpr] = EXTRACT_OPERAND (CRS2S, l) + 8;
+		      GPR[status_gpr] = 32+EXTRACT_OPERAND (CRS2S, l) + 8;
 		     status_gpr++;
 	      break;
 	    }
@@ -1202,14 +1202,14 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	  if ((l & MASK_JALR) == MATCH_JALR)
 	    maybe_print_address ((void*)0, rs1, 0);
 	  printf ("%s", riscv_gpr_names[rs1]);
-	   //~ GPR[status_gpr] = 31+rs1;
+	   //~ GPR[status_gpr] = 96+rs1;
 		     //~ status_gpr++;
 	  break;
 
 	case 't':
 	  printf ("%s",
 		 riscv_gpr_names[EXTRACT_OPERAND (RS2, l)]);
-		 GPR[status_gpr] = 31+EXTRACT_OPERAND (RS2, l);
+		 GPR[status_gpr] = 96+EXTRACT_OPERAND (RS2, l);
 		     status_gpr++;
 	  break;
 
@@ -1292,7 +1292,7 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	    							  	  immediatedata = EXTRACT_RVC_LUI_IMM (l);
 }
 	  printf ("%s", riscv_gpr_names[rd]);
-	   GPR[status_gpr] = 31+rd;
+	   GPR[status_gpr] = 96+rd;
 		     status_gpr++;
 	  break;
 
@@ -1317,25 +1317,25 @@ print_insn_args (const char *d, unsigned long long l, unsigned long pc, struct d
 	case 'S':
 	case 'U':
 	  printf ("%s", riscv_fpr_names[rs1]);
-	  GPR[status_gpr] = riscv_fpr_names[rs1];
+	  GPR[status_gpr] = 32+rs1;
 		     status_gpr++;
 	  break;
 
 	case 'T':
 	  printf ("%s", riscv_fpr_names[EXTRACT_OPERAND (RS2, l)]);
-	  GPR[status_gpr] =EXTRACT_OPERAND (RS2, l);
+	  GPR[status_gpr] =32+EXTRACT_OPERAND (RS2, l);
 		     status_gpr++;
 	  break;
 
 	case 'D':
 	  printf ("%s", riscv_fpr_names[rd]);
-	  GPR[status_gpr] = riscv_fpr_names[rd];
+	  GPR[status_gpr] = 32+rd;
 		     status_gpr++;
 	  break;
 
 	case 'R':
 	  printf ("%s", riscv_fpr_names[EXTRACT_OPERAND (RS3, l)]);
-	  GPR[status_gpr] = EXTRACT_OPERAND (RS3, l);
+	  GPR[status_gpr] = 32+EXTRACT_OPERAND (RS3, l);
 		     status_gpr++;
 	  break;
 

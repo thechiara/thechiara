@@ -10613,7 +10613,11 @@ void chiara_parse_ppc_instruction(unsigned long long instruction) {
 				status++;
 				
 				}
-				powerpc_opcodes[x].to_chiara_gpr(31+GPR_data[0],31+GPR_data[1],31+GPR_data[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,GPR_data);
+				if(powerpc_opcodes[x].to_chiara_gpr== chiara_action_reg_fpu)  {
+									powerpc_opcodes[x].to_chiara_gpr(32+GPR_data[0],32+GPR_data[1],32+GPR_data[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,GPR_data);
+return;
+				}
+				powerpc_opcodes[x].to_chiara_gpr(96+GPR_data[0],96+GPR_data[1],96+GPR_data[2],powerpc_opcodes[x].gpraction,POWERPC_LITTLENDIAN_IMAGE,GPR_data);
 			}
 
 return;
