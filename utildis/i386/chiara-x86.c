@@ -276,11 +276,20 @@ struct chiara_x86 {
 struct chiara_x86  chiara_x86	;
 
 void chiara_emul_x86(unsigned char *instruction,int size) {
+	
+	printf("debug x86 \n");
+	
+	printf("future codep pointer %x \n",instruction);
+	printf("size future  codep pointer %x \n",size);
+	printf("codep+size %x \n",instruction+size);
 	/*START BUG SEARCH HERE */
 	start_codep = instruction;
-	obufp = instruction; // bug ????
+	obufp = obuf; // bug ????
 	end_codep = instruction+size;
 	codep = instruction;
+		printf(" codep pointer %x \n",codep);
+	printf("end_codep after assignement  %x \n",end_codep);
+
 	index_instruction = 0;
 	start_pc = 0; // 
 	names64 = att_names64;
@@ -334,10 +343,11 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 static int
 FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 {
-	
+	printf("end_codep %x \n",end_codep);
+	printf("codep %x \n",codep);
+	printf("addr %x \n",addr);
 	
 	if(addr >= end_codep) {
-		printf("X86 OUT OF RANGE \n codep : %x end_codep %x adrr %x",codep,end_codep,addr);
 		return 1;
 		
 		}
@@ -12872,19 +12882,19 @@ OP_G (int bytemode, int sizeflag)
       break;
     case w_mode:
       oappend (names16[modrm.reg + add]);
-      	chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+      	chiara_x86.GPR[chiara_x86.takedgpr] = 64+modrm.reg + add;
 	chiara_x86.takedgpr++;
       break;
     case d_mode:
     case db_mode:
     case dw_mode:
       oappend (names32[modrm.reg + add]);
-      chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+      chiara_x86.GPR[chiara_x86.takedgpr] = 64+modrm.reg + add;
 		chiara_x86.takedgpr++;
       break;
     case q_mode:
       oappend (names64[modrm.reg + add]);
-        chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.reg + add;
+        chiara_x86.GPR[chiara_x86.takedgpr] = 96+modrm.reg + add;
 		chiara_x86.takedgpr++;
       break;
     case bnd_mode:
@@ -12904,18 +12914,18 @@ OP_G (int bytemode, int sizeflag)
       USED_REX (REX_W);
       if (rex & REX_W) {
 	oappend (names64[modrm.reg + add]);
-      chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.reg + add;
+      chiara_x86.GPR[chiara_x86.takedgpr] = 96+modrm.reg + add;
 		chiara_x86.takedgpr++;
       }else
 	{
 	  if ((sizeflag & DFLAG)
 	      || (bytemode != v_mode && bytemode != movsxd_mode)) {
 	    oappend (names32[modrm.reg + add]);
-	    	   chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+	    	   chiara_x86.GPR[chiara_x86.takedgpr] = 64+modrm.reg + add;
 		chiara_x86.takedgpr++;
 	 } else {
 	    oappend (names16[modrm.reg + add]);
-	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+modrm.reg + add;
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 32+modrm.reg + add;
 		chiara_x86.takedgpr++;
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
@@ -12942,11 +12952,11 @@ OP_G (int bytemode, int sizeflag)
     case m_mode:
       if (address_mode == mode_64bit) {
 	oappend (names64[modrm.reg + add]);
-	chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.reg + add;
+	chiara_x86.GPR[chiara_x86.takedgpr] = 96+modrm.reg + add;
 		chiara_x86.takedgpr++;
    }   else {
 	oappend (names32[modrm.reg + add]);
-		   chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.reg + add;
+		   chiara_x86.GPR[chiara_x86.takedgpr] = 64+modrm.reg + add;
 		chiara_x86.takedgpr++;
       }
       break;
@@ -13011,7 +13021,7 @@ OP_REG (int code, int sizeflag)
     case ax_reg: case cx_reg: case dx_reg: case bx_reg:
     case sp_reg: case bp_reg: case si_reg: case di_reg:
       s = names16[code - ax_reg + add];
-       chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - ax_reg + add;
+       chiara_x86.GPR[chiara_x86.takedgpr] = 32+code - ax_reg + add;
 		chiara_x86.takedgpr++;
       break;
     case al_reg: case ah_reg: case cl_reg: case ch_reg:
@@ -13034,7 +13044,7 @@ OP_REG (int code, int sizeflag)
 	  && ((sizeflag & DFLAG) || (rex & REX_W)))
 	{
 	  s = names64[code - rAX_reg + add];
-	  chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - rAX_reg + add;
+	  chiara_x86.GPR[chiara_x86.takedgpr] = 96+code - rAX_reg + add;
 		chiara_x86.takedgpr++;
 	  break;
 	}
@@ -13045,17 +13055,17 @@ OP_REG (int code, int sizeflag)
       USED_REX (REX_W);
       if (rex & REX_W) {
 	s = names64[code - eAX_reg + add];
-     chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - eAX_reg + add;
+     chiara_x86.GPR[chiara_x86.takedgpr] = 96+code - eAX_reg + add;
 		chiara_x86.takedgpr++;
      } else
 	{
 	  if (sizeflag & DFLAG) {
 	    s = names32[code - eAX_reg + add];
-	    chiara_x86.GPR[chiara_x86.takedgpr] = 15+code - eAX_reg + add;
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 64+code - eAX_reg + add;
 		chiara_x86.takedgpr++;
 	  } else {
 	    s = names16[code - eAX_reg + add];
-	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - eAX_reg + add;
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 32+code - eAX_reg + add;
 		chiara_x86.takedgpr++;
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
@@ -13083,7 +13093,7 @@ OP_IMREG (int code, int sizeflag)
     case ax_reg: case cx_reg: case dx_reg: case bx_reg:
     case sp_reg: case bp_reg: case si_reg: case di_reg:
       s = names16[code - ax_reg];
-      chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - ax_reg;
+      chiara_x86.GPR[chiara_x86.takedgpr] = 32+code - ax_reg;
 		chiara_x86.takedgpr++;
       break;
     case es_reg: case ss_reg: case cs_reg:
@@ -13108,18 +13118,18 @@ chiara_x86.takedgpr++;
       USED_REX (REX_W);
       if (rex & REX_W) {
 	s = names64[code - eAX_reg];
-    chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - eAX_reg;
+    chiara_x86.GPR[chiara_x86.takedgpr] = 96+code - eAX_reg;
 chiara_x86.takedgpr++;
      } else
 	{
 	  if (sizeflag & DFLAG) {
 			printf("error seg fault %s \n",names32[code - eAX_reg]);
 	    s = names32[code - eAX_reg];
-	    chiara_x86.GPR[chiara_x86.takedgpr] = 15+ code - eAX_reg;
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 64+ code - eAX_reg;
 chiara_x86.takedgpr++;
 	  } else {
 	    s = names16[code - eAX_reg];
-	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - eAX_reg;
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 32+code - eAX_reg;
 		chiara_x86.takedgpr++;
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
@@ -13427,21 +13437,21 @@ ptr_reg (int code, int sizeflag)
     {
       if (!(sizeflag & AFLAG)) {
 	s = names32[code - eAX_reg];
-	 chiara_x86.GPR[chiara_x86.takedgpr] = 15+code - eAX_reg;
+	 chiara_x86.GPR[chiara_x86.takedgpr] = 64+code - eAX_reg;
 		chiara_x86.takedgpr++;
       }else {
 	s = names64[code - eAX_reg];
-	 chiara_x86.GPR[chiara_x86.takedgpr] = 31+code - eAX_reg;
+	 chiara_x86.GPR[chiara_x86.takedgpr] = 96+code - eAX_reg;
 		chiara_x86.takedgpr++;
     }
 }
   else if (sizeflag & AFLAG) {
     s = names32[code - eAX_reg];
-      chiara_x86.GPR[chiara_x86.takedgpr] = 15+code - eAX_reg;
+      chiara_x86.GPR[chiara_x86.takedgpr] = 64+code - eAX_reg;
 		chiara_x86.takedgpr++;
    } else {
     s = names16[code - eAX_reg];
-    chiara_x86.GPR[chiara_x86.takedgpr] = 7+code - eAX_reg;
+    chiara_x86.GPR[chiara_x86.takedgpr] = 32+code - eAX_reg;
 		chiara_x86.takedgpr++;
   oappend (s);
   *obufp++ = close_char;
@@ -14339,14 +14349,14 @@ chiara_x86.takedgpr++;
 	  USED_REX (REX_W);
 	  if (rex & REX_W) {
 	    oappend (names64[modrm.rm + add]);
-	     chiara_x86.GPR[chiara_x86.takedgpr] = 31+modrm.rm + add;
+	     chiara_x86.GPR[chiara_x86.takedgpr] = 96+modrm.rm + add;
 		chiara_x86.takedgpr++;
 	  } else if ((prefixes & PREFIX_DATA)) {
 	    oappend (names16[modrm.rm + add]);
-	    chiara_x86.GPR[chiara_x86.takedgpr] = 7+modrm.rm + add;
+	    chiara_x86.GPR[chiara_x86.takedgpr] = 32+modrm.rm + add;
 		chiara_x86.takedgpr++;
 	   } else {
-		   chiara_x86.GPR[chiara_x86.takedgpr] = 15+modrm.rm + add;
+		   chiara_x86.GPR[chiara_x86.takedgpr] = 64+modrm.rm + add;
 		chiara_x86.takedgpr++;
 	    oappend (names32[modrm.rm + add]);
 	}
@@ -16327,7 +16337,6 @@ void chiara_truex86 (unsigned char *instruction) {
   int i;
   char *op_txt[MAX_OPERANDS];
 	// vérifier prefix 
-	printf("codep begin after scan %x and codep %x and codep where %d  \n",*instruction,*codep,codep);
 	chiara_x86.GPR[0] = 0;
 	chiara_x86.GPR[1] = 0;
 	chiara_x86.GPR[2] = 0;
@@ -16413,8 +16422,7 @@ void chiara_truex86 (unsigned char *instruction) {
 	    {
 	      obufp = op_out[i];
 	      op_ad = MAX_OPERANDS - 1 - i;
-	      printf("codep %d \n",*codep);
-	      printf("codep pointer %d \n",codep);
+	    
 	      if (dp->op[i].rtn)
 		(*dp->op[i].rtn) (dp->op[i].bytemode, sizeflag);
 	      /* For EVEX instruction after the last operand masking
@@ -16515,7 +16523,6 @@ void chiara_truex86 (unsigned char *instruction) {
 	if (name == NULL)
 	  abort ();
 	prefix_length += strlen (name) + 1;
-	printf("prefx name %x \n",name);
       }
 
   /* If the mandatory PREFIX_REPZ/PREFIX_REPNZ/PREFIX_DATA prefix is
@@ -16546,12 +16553,10 @@ return;
   /* Check maximum code length.  */
   if ((codep - start_codep) > MAX_CODE_LENGTH)
     {
-					printf("insn x86 name max code length stop %s \n",dp->name);
 if(*dp->to_chiara_gpr) {
 	
 	printf("x86 is calling chiara \n");
 	dp->to_chiara_gpr(chiara_x86.GPR[0],chiara_x86.GPR[1],chiara_x86.GPR[2],dp->gpraction,X86_IMAGE,chiara_x86.x86data);
-printf("value gpr 0 %d \n",chiara_x86.GPR[0]);
 
 	}
 

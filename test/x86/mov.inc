@@ -1,1 +1,1 @@
-add ebx,4
+mov ebx,50
