@@ -1567,4 +1567,15 @@ return;
 		}
 
 }
+/* Memory support here*/
 
+
+
+struct thechiara_pagination {
+
+long long from;
+long long to;
+
+struct 	thechiara_pagination * next;
+	
+};
