@@ -271,7 +271,9 @@ struct chiara_x86 {
 	int takedgpr; 
 	
 	long long x86data;
-	
+	long CR[2];
+		int takedcr; 
+
 	};
 struct chiara_x86  chiara_x86	;
 
@@ -2930,8 +2932,8 @@ static const struct dis386 dis386_twobyte[] = {
   /* 20 */
   { "movZ",		{ Rm, Cm }, 0 },
   { "movZ",		{ Rm, Dm }, 0 },
-  { "movZ",		{ Cm, Rm }, 0 },
-  { "movZ",		{ Dm, Rm }, 0 },
+  { "movZ",		{ Cm, Rm }, 0,.to_chiara_gpr=chiara_action_internal,.gpraction=ACTION_X86_CR3 }, // on suppote que cr3 pour l'instant
+  { "movZ",		{ Dm, Rm }, 0},
   { MOD_TABLE (MOD_0F24) },
   { Bad_Opcode },
   { MOD_TABLE (MOD_0F26) },
@@ -12221,6 +12223,7 @@ OP_indirE (int bytemode, int sizeflag)
 static void
 OP_E_register (int bytemode, int sizeflag)
 {
+	int incre = 0;
   int reg = modrm.rm;
   const char **names;
 
@@ -12246,18 +12249,28 @@ OP_E_register (int bytemode, int sizeflag)
       break;
     case w_mode:
       names = names16;
+      incre = 32;
       break;
     case d_mode:
     case dw_mode:
     case db_mode:
       names = names32;
+      incre = 64;
       break;
     case q_mode:
       names = names64;
+      incre = 96;
       break;
     case m_mode:
     case v_bnd_mode:
-      names = address_mode == mode_64bit ? names64 : names32;
+      if(address_mode == mode_64bit) {
+		  names = names64;
+			incre = 96;
+		  } else  {
+			 names = names32; 
+			  			incre = 64;
+
+			  }
       break;
     case bnd_mode:
     case bnd_swap_mode:
@@ -12272,6 +12285,7 @@ OP_E_register (int bytemode, int sizeflag)
       if (address_mode == mode_64bit && isa64 == intel64)
 	{
 	  names = names64;
+	  incre = 96;
 	  break;
 	}
       /* Fall through.  */
@@ -12279,6 +12293,7 @@ OP_E_register (int bytemode, int sizeflag)
       if (address_mode == mode_64bit && ((sizeflag & DFLAG) || (rex & REX_W)))
 	{
 	  names = names64;
+	  incre = 96;
 	  break;
 	}
       bytemode = v_mode;
@@ -12290,38 +12305,67 @@ OP_E_register (int bytemode, int sizeflag)
     case dqd_mode:
     case dqw_mode:
       USED_REX (REX_W);
-      if (rex & REX_W)
+      if (rex & REX_W) {
 	names = names64;
-      else
+	incre = 96;
+      } else
 	{
 	  if ((sizeflag & DFLAG)
 	      || (bytemode != v_mode
-		  && bytemode != v_swap_mode))
+		  && bytemode != v_swap_mode)) {
 	    names = names32;
-	  else
+	    incre = 64;
+	  } else {
 	    names = names16;
+	    incre = 32;
 	  used_prefixes |= (prefixes & PREFIX_DATA);
 	}
+}
       break;
     case movsxd_mode:
-      if (!(sizeflag & DFLAG) && isa64 == intel64)
+      if (!(sizeflag & DFLAG) && isa64 == intel64) {
 	names = names16;
-      else
+	incre = 32;
+      } else {
 	names = names32;
+	incre = 64;
       used_prefixes |= (prefixes & PREFIX_DATA);
+  }
       break;
     case va_mode:
-      names = (address_mode == mode_64bit
-	       ? names64 : names32);
-      if (!(prefixes & PREFIX_ADDR))
+
+	       if(address_mode == mode_64bit) {
+		  names = names64;
+			incre = 96;
+		  } else  {
+			 names = names32; 
+			  			incre = 64;
+
+			  }
+      if (!(prefixes & PREFIX_ADDR)) {
 	names = (address_mode == mode_16bit
 		     ? names16 : names);
+		     if(address_mode == mode_16bit) {
+		  names = names16;
+			incre = 32;
+		 }
+	 }
       else
 	{
 	  /* Remove "addr16/addr32".  */
 	  all_prefixes[last_addr_prefix] = 0;
+	 /*
 	  names = (address_mode != mode_32bit
 		       ? names32 : names16);
+		*/
+		        if(address_mode == mode_32bit) {
+		  names = names32;
+			incre = 64;
+		 } else {
+			  names = names16;
+			incre = 32;
+			 
+			 }
 	  used_prefixes |= PREFIX_ADDR;
 	}
       break;
@@ -12340,6 +12384,9 @@ OP_E_register (int bytemode, int sizeflag)
       oappend (INTERNAL_DISASSEMBLER_ERROR);
       return;
     }
+
+    chiara_x86.GPR[chiara_x86.takedgpr] = incre+reg;
+	chiara_x86.takedgpr++;
   oappend (names[reg]);
 }
  static void
@@ -13527,7 +13574,9 @@ OP_C (int dummy  __attribute__((unused)), int sizeflag  __attribute__((unused)))
     }
   else
     add = 0;
-  sprintf (scratchbuf, "%%cr%d", modrm.reg + add);
+       chiara_x86.GPR[chiara_x86.takedgpr] = modrm.reg + add;
+chiara_x86.takedgpr++;
+  printf ( "%%cr%d", modrm.reg + add);
   oappend_maybe_intel (scratchbuf);
 }
 
@@ -13543,7 +13592,9 @@ OP_D (int dummy  __attribute__((unused)), int sizeflag  __attribute__((unused)))
   if (intel_syntax)
     sprintf (scratchbuf, "db%d", modrm.reg + add);
   else
-    sprintf (scratchbuf, "%%db%d", modrm.reg + add);
+   chiara_x86.GPR[chiara_x86.takedgpr] = modrm.reg + add;
+chiara_x86.takedgpr++;
+    printf ( "%%db%d", modrm.reg + add);
   oappend (scratchbuf);
 }
 
@@ -16373,6 +16424,7 @@ void chiara_truex86 (unsigned char *instruction) {
       need_modrm = twobyte_has_modrm[*codep];
       codep++;
             statusarray++;
+					printf("insn x86 name %s \n",dp->name);
 
     }
   else

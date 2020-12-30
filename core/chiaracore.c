@@ -1579,3 +1579,22 @@ long long to;
 struct 	thechiara_pagination * next;
 	
 };
+/* 
+ * the main function for modifying paging / interrupt etc on all targets !
+ * */
+void chiara_action_internal(unsigned long first,unsigned long second,unsigned long third,unsigned long action,unsigned long architecture,long long datahardcoded) {
+
+switch (action) {
+	
+	case ACTION_X86_CR3: {
+		printf("INFO: An instruction wants to modify the thechiara pagination/memory/interrupt configuration \n");
+		// x86  first =cr second = reg where modif 
+		break;
+		}
+	
+	default :
+		break;
+	
+	}
+
+}
