@@ -160,7 +160,6 @@ printf("You don't provide arguments : \n");
 }
 
 int main (int argn,const char *argv[]) {
-
 printf("Copyright 2020 Gaspard COURCHINOUX and contributors of thechiara project \n");
 if(argn <= 2) {
 	printf("You don't provide arguments : \n");
@@ -170,6 +169,8 @@ if(argn <= 2) {
 	printf("-rawx86 [NAME]   \n");	
 	return;
 }
+chiara_alloc_ram(320000000); // 32kb of memory for testing 
+
 chiara_decrypt_arguments(argn,argv);
 
 while(1);

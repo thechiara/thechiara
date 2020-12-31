@@ -76,6 +76,8 @@ struct chiara_compute_global global_struct;
 #define ACTION_MULNORMAL 0x16 
 #define ACTION_FPU_TO_INT 0x17 
 #define ACTION_FPU_TO_INTUNSIGNED 0x18 
+#define ACTION_DISP_TO_MEM 0x19 
+#define ACTION_DISP_MEM_TO_GPR 0xa0 
 
 
 

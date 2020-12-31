@@ -1,1 +1,1 @@
-mov ebx,50
+mov eax,0x100

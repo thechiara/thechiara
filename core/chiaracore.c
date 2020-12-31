@@ -80,6 +80,13 @@ void gaspard_check_flags( long a, long b) {
 				global_struct.flags.overflow =1;
 	}
 	}
+
+static long *mem;
+
+void chiara_alloc_ram(int ramsize) {
+	
+	mem = malloc(ramsize);
+}
 	
 struct chiara_gpr_organization{
 	unsigned char typeofgpr;
@@ -509,8 +516,16 @@ void chiara_action_reg(unsigned long first,unsigned long second,unsigned long th
 	switch(architecture) {
 		
 		case X86_IMAGE:
+	if (action == ACTION_DISP_MEM_TO_GPR) {
+				chiara_check_gpr(&gpr_orga_array[first],(void*)0,(void*)0,mem[datahardcoded]);
+gpr_orga_array[first].data = mem[datahardcoded] ;
+		return ;
+	}else	if (action == ACTION_DISP_TO_MEM) {
 		
-		if(action == ACTION_AND) {
+		mem[datahardcoded] = gpr_orga_array[first].data;
+		return;
+		
+	} else 	if(action == ACTION_AND) {
 
 				if(datahardcoded != NODATA) {
 		chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
@@ -1579,6 +1594,32 @@ long long to;
 struct 	thechiara_pagination * next;
 	
 };
+ struct chiara_x86_cr3
+ {
+  unsigned long unused          :3;
+   unsigned long write :1; /*  */
+   unsigned long cache:1; 
+   unsigned long unused2          :7; 
+  unsigned long pd_paddr       :20;
+ } __attribute__ ((packed));
+struct chiara_x86_page_directory {
+	
+	 unsigned long  present        :1; /* 1=PT mapped */
+  unsigned long  write          :1; /* 0=read-only, 1=read/write */
+   unsigned long  user           :1; /* 0=supervisor, 1=user */
+  unsigned long  write_through  :1; /* 0=write-back, 1=write-through */
+   unsigned long  cache_disabled :1; /* 1=cache disabled */
+   unsigned long  accessed       :1; /* 1=read/write access since last clear */
+   unsigned long  zero           :1; /* Intel reserved */
+   unsigned long  page_size      :1; /* 0=4kB, 1=4MB or 2MB (depending on PAE) */
+  unsigned long  unused    :1; 
+   unsigned long  custom         :3;
+	
+unsigned long adressptr:20;
+	
+};
+
+
 /* 
  * the main function for modifying paging / interrupt etc on all targets !
  * */
@@ -1589,6 +1630,13 @@ switch (action) {
 	case ACTION_X86_CR3: {
 		printf("INFO: An instruction wants to modify the thechiara pagination/memory/interrupt configuration \n");
 		// x86  first =cr second = reg where modif 
+		
+		struct chiara_x86_page_directory * chiara_x86_page_directorytmp;
+		struct chiara_x86_cr3 * chiara_x86_cr3tmp;
+		chiara_x86_cr3tmp = (struct chiara_x86_cr3 *) &gpr_orga_array[second];
+		
+		printf("INFO:chiara_x86_cr3 addr in mem of page directory %x \n ",chiara_x86_cr3tmp->pd_paddr);
+		
 		break;
 		}
 	
