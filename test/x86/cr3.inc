@@ -1,3 +1,24 @@
 mov eax,1
 mov cr3,eax
-
+or eax,ebx
+and eax,ebx
+mov eax,45
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax
+mov cr3,eax

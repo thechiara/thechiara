@@ -1602,6 +1602,7 @@ struct 	thechiara_pagination * next;
    unsigned long unused2          :7; 
   unsigned long pd_paddr       :20;
  } __attribute__ ((packed));
+ 
 struct chiara_x86_page_directory {
 	
 	 unsigned long  present        :1; /* 1=PT mapped */
@@ -1619,7 +1620,43 @@ unsigned long adressptr:20;
 	
 };
 
+struct chiara_x86_page_table
+ {
+  unsigned long present        :1; /* 1=PT mapped */
+  unsigned long write          :1; /* 0=read-only, 1=read/write */
+  unsigned long user           :1; /* 0=supervisor, 1=user */
+   unsigned long write_through  :1; /* 0=write-back, 1=write-through */
+  unsigned long cache_disabled :1; /* 1=cache disabled */
+   unsigned long accessed       :1; /* 1=read/write access since last clear */
+   unsigned long dirty          :1; /* 1=write access since last clear */
+  unsigned long zero           :1; /* Intel reserved */
+   unsigned long global_page    :1; /* 1=No TLB invalidation upon cr3 switch
+                                   (when PG set in cr4) */
+   unsigned long custom         :3; /* Do what you want with them */
+   unsigned long paddr          :20;
+ };
+struct chiara_global {
+	
+int arch;
+int paginationstatus; // 0 = nopagination 1= paginaton
+union {
+	
+unsigned long adress_pagedirectory_x86;
 
+unsigned long adress_pagedirectory_arm;
+	
+	
+};	
+
+union {
+	
+	struct chiara_x86_cr3 *cr3;
+	
+	};	
+
+
+}; 
+struct chiara_global chiara_global_status_struct;
 /* 
  * the main function for modifying paging / interrupt etc on all targets !
  * */
@@ -1631,12 +1668,18 @@ switch (action) {
 		printf("INFO: An instruction wants to modify the thechiara pagination/memory/interrupt configuration \n");
 		// x86  first =cr second = reg where modif 
 		
-		struct chiara_x86_page_directory * chiara_x86_page_directorytmp;
+		struct chiara_x86_page_directory * chiara_x86_page_directorytmp[1024];
 		struct chiara_x86_cr3 * chiara_x86_cr3tmp;
 		chiara_x86_cr3tmp = (struct chiara_x86_cr3 *) &gpr_orga_array[second];
 		
 		printf("INFO:chiara_x86_cr3 addr in mem of page directory %x \n ",chiara_x86_cr3tmp->pd_paddr);
+		chiara_global_status_struct.arch = X86_IMAGE;
+		chiara_global_status_struct.cr3 = chiara_x86_cr3tmp;
+		chiara_global_status_struct.adress_pagedirectory_x86 = chiara_x86_cr3tmp->pd_paddr;
 		
+		// now assign adress to page directory 
+	
+		   
 		break;
 		}
 	
