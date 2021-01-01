@@ -315,24 +315,12 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
       scale_char = ',';
       size_file_insn = size;
       	/*END BUG SEARCH HERE */
-
-	for(;statusarray<size;statusarray++,index_instruction++,codep++) {
+printf("statusarray val %d \n",statusarray);
+	for(;statusarray<size;statusarray++,index_instruction++) {
 					//~ while(end_codep!=codep) {
 					chiara_truex86(codep);
-
-		//~ struct insn_template * tmp  = chiara_lookup_opcode(instruction[statusarray]) ;
-		//~ if( tmp !=0) {
-			
-			//~ printf("X86 instruction -> %s \n",tmp->name);
-			//~ if(*tmp->to_chiara_gpr != 0) {
-				//~ // get attribute 
-				//~ printf("about to call chiara \n");
-				//~ unsigned long gpr[2];
-				//~ unsigned long errors[2];
-				//~ // call chiare here
-				//~ }
-			//~ statusarray += tmp->opcode_length;
-			//~ }
+					
+		
 		
 		}
 			printf("start codepx86 pointer %d \n",start_codep);
@@ -345,9 +333,7 @@ void chiara_emul_x86(unsigned char *instruction,int size) {
 static int
 FETCH_DATA (struct disassemble_info *info, unsigned char *addr)
 {
-	printf("end_codep %x \n",end_codep);
-	printf("codep %x \n",codep);
-	printf("addr %x \n",addr);
+
 	
 	if(addr >= end_codep) {
 		return 1;
@@ -11477,6 +11463,8 @@ get32s (void)
 
   x = (x ^ ((bfd_signed_vma) 1 << 31)) - ((bfd_signed_vma) 1 << 31);
 statusarray = statusarray +3 ;
+
+
   return x;
 }
 static bfd_signed_vma
@@ -11490,6 +11478,7 @@ get32 (void)
   x |= (*codep++ & (bfd_signed_vma) 0xff) << 16;
   x |= (*codep++ & (bfd_signed_vma) 0xff) << 24;
   statusarray = statusarray +3 ;
+
 
   return x;
 }
@@ -13030,7 +13019,7 @@ get16 (void)
   x |= (*codep++ & 0xff) << 8;
               statusarray++;
             statusarray++;
-
+// bug incre here ? too much incre of codep,? 
   return x;
 }
 static void
@@ -16374,6 +16363,7 @@ ckprefix (void)
 	all_prefixes[i++] = *codep;
       rex = newrex;
       codep++;
+      // bug incre here ?
             statusarray++;
 
       length++;
