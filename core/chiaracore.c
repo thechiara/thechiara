@@ -736,8 +736,10 @@ return;
 
 
 		case ARM_64: {
-			
-			if(action == ACTION_AND) {
+			if(action == ACTION_WRITE_ARM_SYSTEM) {
+				
+			return chiara_action_internal(first,second,third,action,architecture,datahardcoded);	
+		} else	if(action == ACTION_AND) {
 				if(datahardcoded != NODATA) {
 	chiara_check_gpr(&gpr_orga_array[first],&gpr_orga_array[second],(void*)0,datahardcoded);
 
@@ -1682,7 +1684,18 @@ switch (action) {
 		   
 		break;
 		}
-	
+	case ACTION_WRITE_ARM_SYSTEM: {
+		unsigned long true_sysreg = 32-first;
+		chiara_global_status_struct.arch = ARM_64;
+
+		switch (true_sysreg) {
+			case 92: printf("ARM: ttbr0_el1 will configure the pagination table \n "); chiara_global_status_struct.adress_pagedirectory_arm = gpr_orga_array[96+datahardcoded].data;  break;
+			
+			default : printf("ARM; FATAL ERROR CANNOT RECOGNIZE SYSTEM REG : %d \n ",true_sysreg);break;
+			
+			}
+		break;
+		}
 	default :
 		break;
 	

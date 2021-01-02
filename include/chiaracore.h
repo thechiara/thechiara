@@ -84,6 +84,8 @@ struct chiara_compute_global global_struct;
 
 /*true virtualisation */
 #define ACTION_X86_CR3 0x1 
+#define ACTION_WRITE_ARM_SYSTEM 0x2
+#define ACTION_READ_ARM_SYSTEM 0x3
 
 
 

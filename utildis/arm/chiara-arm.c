@@ -32171,14 +32171,20 @@ for(int x = 0;x<operands_num;x++) {
     DATAIMMEDIAT = inst->operands[x].imm.value;
     
     
-  } else if(inst->operands[x].type ==AARCH64_OPND_FPIMM) { 
+  } else if(inst->operands[x].type ==AARCH64_OPND_FPIMM  || AARCH64_OPND_IMM0 || AARCH64_OPND_IMM_2 || AARCH64_OPND_UIMM4 || AARCH64_OPND_UIMM3_OP2 || AARCH64_OPND_UIMM3_OP1 || AARCH64_OPND_BIT_NUM || AARCH64_OPND_UIMM4_ADDG) { 
       DATAIMMEDIAT = inst->operands[x].imm.value;
 
   } else if(inst->operands[x].type ==AARCH64_OPND_Fd || AARCH64_OPND_Fn || AARCH64_OPND_Fm || AARCH64_OPND_Fa || AARCH64_OPND_Ft || AARCH64_OPND_Ft2 ) {
   GPR[GPRtaked] = inst->operands[x].reglane.regno;
     GPRtaked++;
   
-   } else {
+   } else if (inst->operands[x].type == AARCH64_OPND_PSTATEFIELD) {
+  GPR[x] = inst->operands[x].pstatefield;
+    GPRtaked++;	   
+	   
+	  } 
+   
+   else {
     GPR[GPRtaked] = inst->operands[x].reglane.regno;
     GPRtaked++;
     
