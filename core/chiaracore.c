@@ -1653,7 +1653,7 @@ struct chiara_arm_page_table0 {
 	// https://developer.arm.com/architectures/learn-the-architecture/memory-management/controlling-address-translation
 	//https://github.com/codingbelief/arm-architecture-reference-manual-for-armv8-a/blob/master/en/chapter_d4/d43_3_memory_attribute_fields_in_the_vmsav8-64_translation_table_formats_descriptors.md
 	
-	
+	unsigned long unused:58;
 };  
 struct chiara_global {
 	

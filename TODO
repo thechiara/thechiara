@@ -6,13 +6,24 @@ rewrite
 
 # on chiaracore 
 
-write the fpu support and the memory support 
+write the memory support 
 
 the fpu is now supported except in alpha dec 
 
 need to test 
 
 road to meomorys upport and condition and internal processor instruction (like conditional jump, interrupts etc etc )
+
+
+paging ok  for x86
+
+but not for arm and ppc 
+
+I will priorise the paging for ppc not for arm because tehe imple for arm is boring 
+
+And start the imple of interrupt (is will more easy than paging)
+
+write the support of basic alu bizarre risc instruction such as multiply and subsbtract (yes it exists !) 
 
 
 # on all architectures 
