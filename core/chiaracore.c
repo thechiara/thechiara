@@ -1637,6 +1637,24 @@ struct chiara_x86_page_table
    unsigned long custom         :3; /* Do what you want with them */
    unsigned long paddr          :20;
  };
+struct chiara_arm_ttbr0_el1{
+	// value contaiend from a gpr that precised the adress of the page table level 0 ! 
+	// aligned in 64 bits 
+	// https://developer.arm.com/docs/ddi0595/h/aarch64-system-registers/ttbr0_el1
+	unsigned long cnp :1;
+	unsigned long baddr : 47; // adress of page table level 0
+	unsigned long asid :15;
+
+	
+	
+	
+	};
+struct chiara_arm_page_table0 {
+	// https://developer.arm.com/architectures/learn-the-architecture/memory-management/controlling-address-translation
+	//https://github.com/codingbelief/arm-architecture-reference-manual-for-armv8-a/blob/master/en/chapter_d4/d43_3_memory_attribute_fields_in_the_vmsav8-64_translation_table_formats_descriptors.md
+	
+	
+};  
 struct chiara_global {
 	
 int arch;
@@ -1645,7 +1663,7 @@ union {
 	
 unsigned long adress_pagedirectory_x86;
 
-unsigned long adress_pagedirectory_arm;
+unsigned long adress_pagedirectory_arm; // encoded follow the struct chiara_arm_ttbr0_el1
 	
 	
 };	
@@ -1653,11 +1671,14 @@ unsigned long adress_pagedirectory_arm;
 union {
 	
 	struct chiara_x86_cr3 *cr3;
+	struct chiara_arm_ttbr0_el1 *ttbr0_el1;
 	
 	};	
 
 
-}; 
+};
+
+
 struct chiara_global chiara_global_status_struct;
 /* 
  * the main function for modifying paging / interrupt etc on all targets !
@@ -1687,9 +1708,15 @@ switch (action) {
 	case ACTION_WRITE_ARM_SYSTEM: {
 		unsigned long true_sysreg = 32-first;
 		chiara_global_status_struct.arch = ARM_64;
-
+//https://developer.arm.com/docs/ddi0595/h/aarch64-system-registers/ttbr0_el1
 		switch (true_sysreg) {
-			case 92: printf("ARM: ttbr0_el1 will configure the pagination table \n "); chiara_global_status_struct.adress_pagedirectory_arm = gpr_orga_array[96+datahardcoded].data;  break;
+			case 92:  {printf("ARM: ttbr0_el1 will configure the pagination table \n "); chiara_global_status_struct.adress_pagedirectory_arm = gpr_orga_array[96+datahardcoded].data;  
+				
+		struct 	chiara_arm_ttbr0_el1 *arm_page_adress = 	&gpr_orga_array[96+datahardcoded].data;
+				chiara_global_status_struct.ttbr0_el1 = arm_page_adress;
+				
+				
+			break; }
 			
 			default : printf("ARM; FATAL ERROR CANNOT RECOGNIZE SYSTEM REG : %d \n ",true_sysreg);break;
 			
