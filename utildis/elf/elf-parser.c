@@ -1,7 +1,6 @@
 
-// Copyright 2020 Gaspard COURCHINOUX 
 /*
-Copyright (C) 2020 Elliot-Gaspard COURCHINOUX
+Copyright (C) 2020 2021 Elliot-Gaspard COURCHINOUX
 *    This program  is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 3, or (at your option)
@@ -27,7 +26,10 @@ Copyright (C) 2020 Elliot-Gaspard COURCHINOUX
 #include <fcntl.h>
 #include <errno.h>
 #include <chiara-elf.h>
+
 #include <chiaracompute.h>
+#include <chiaracore.h>
+
 void chiara_extract_32bits( char *structheader) {
 		Elf32_Ehdr *elfheader = structheader;
 
@@ -141,6 +143,52 @@ switch (sectionactuelstruct[sectionread].sh_flags) {
 
 	
 	}
+	
+void new_chiara_extract64bits(	char *structheader) {
+	
+	Elf64_Ehdr *elfheader = structheader;
+printf("elfheader->e_shoff %d \n",elfheader->e_shoff);
+printf("elfheader->e_phoff %d \n",elfheader->e_phoff);
+void (*callarch_parser)(unsigned char*,int);
+	if (elfheader->e_ident[EI_DATA] == ELFDATA2LSB) {
+		printf("low endian droite à gauche \n");
+	
+	
+	switch (elfheader->e_machine) {
+		case EM_PPC : printf("powerpc 32bits \n");  callarch_parser = chiara_emul_littleendian_ppc; break;
+		case EM_PPC64 : printf("powerpc 64bits \n");  callarch_parser = chiara_emul_littleendian_ppc; break;
+		case EM_VAX : printf("DEC ALPHA 64bits \n");   callarch_parser = chiara_emul_littleendian_dec;  break;
+		case EM_X86_64 : printf("x86_64 \n"); callarch_parser = chiara_emul_x86; break; 
+		case EM_386 :  callarch_parser = chiara_emul_x86;break; 
+		case EM_AARCH64 : printf("AARCH64 \n");  callarch_parser = chiara_emul_arm;break; 
+		case EM_ARM : printf("EM_ARM \n");   callarch_parser = chiara_emul_arm;break; 
+		case EM_RISCV: printf("riscv \n");  callarch_parser = chiara_emul_riscv;break;   
+default : printf("Dont know fatal : %d \n",elfheader->e_machine);  
+
+	}
+
+	
+	
+		}
+	if (elfheader->e_ident[EI_DATA] == ELFDATA2MSB) {
+		printf("big endian on lit de gauche à droite \n");
+		
+			switch (elfheader->e_machine) {
+			case EM_PPC : printf("powerpc 32bits \n");  callarch_parser = chiara_emul_bigendian_ppc; break;
+		case EM_PPC64 : printf("powerpc 64bits \n");   callarch_parser = chiara_emul_bigendian_ppc; break;
+		case EM_VAX : printf("DEC ALPHA 64bits \n");   callarch_parser = chiara_emul_littleendian_dec; break; // big not low
+
+
+		case EM_ARM : printf("EM_ARM  big endian \n"); callarch_parser = chiara_emul_arm_big;   
+
+default : printf("Dont know fatal : %d \n",elfheader->e_machine);
+		}
+
+}
+
+
+
+}
 void chiara_extract_64bits( char *structheader) {
 		Elf64_Ehdr *elfheader = structheader;
 printf("elfheader->e_shoff %d \n",elfheader->e_shoff);
@@ -260,7 +308,7 @@ exit(EXIT_FAILURE);
 	if (elfheader->e_ident[EI_CLASS] == ELFCLASS64) {
 		printf("64 bits elf \n");
 		//exit(EXIT_FAILURE);	
-chiara_extract_64bits(structheader);
+new_chiara_extract64bits(structheader);
 		}
 
 		printf("ELF MESSAGE: data type %d \n",elfheader->e_ident[EI_DATA]);

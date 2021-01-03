@@ -109,3 +109,7 @@ void chiara_init_iso(unsigned char*file,unsigned long sizeofiso, char *argvstrin
 void chiara_extract_elf (char *structheader,int unused2);
 void chiara_emul_x86(unsigned char *instruction,int size);
 void chiara_emul_riscv(unsigned char *instruction,int size);
+void chiara_emul_littleendian_ppc(unsigned char *instruction,int size);
+void chiara_emul_littleendian_dec(unsigned char *instruction,int size);
+void chiara_emul_arm(unsigned char *instruction,int size);
+void chiara_emul_arm_big(unsigned char *instruction,int size);

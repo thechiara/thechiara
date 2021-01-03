@@ -29,7 +29,7 @@ all : chiarav
 chiarav: $(OBJECTS)
 				 
 
-				gcc -o thechiara $(OBJECTS) -pthread 
+				gcc -o thechiara $(OBJECTS) -pthread -lelf
 				
 
 clean: cleanf
